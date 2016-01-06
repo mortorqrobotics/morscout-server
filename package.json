@@ -1,0 +1,9 @@
+{
+	"name" : "MorScout Server",
+	"main" : "ui/index.html",
+	"window" : {
+		//"toolbar" : false,
+		"width" : 800,
+		"height": 600
+	}
+}

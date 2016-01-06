@@ -1,0 +1,36 @@
+enable server
+disable server
+edit scouting form
+download regional data
+show server ip and customize port
+transfer pit scouting between regionals
+
+
+
+
+drop down/radio buttons		list of strings
+checkbox			boolean
+number				min, max, start
+text				string
+
+
+
+[
+	{
+		"name" : "Broke Down",
+		"type" : "checkbox"
+	}, {
+		"name" : "Goals",
+		"type" : "number",
+		"min" : 0,
+		"max" : -1,
+		"start" : 0
+	}, {
+		"name" : "Drive Train",
+		"type" : "dropdown", // or "radiobuttons"
+		"options" : ["west coast", "swerve"]
+	}, {
+		"name" : "Comments",
+		"type" : "text"
+	}
+]
