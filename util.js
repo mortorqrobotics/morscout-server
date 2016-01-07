@@ -48,22 +48,45 @@ exports.hash = function(str){
 	//TODO: later
 }
 
+exports.clearDataPoints = function(cb){
+	DataPoint.remove({}, function(){
+		cb();
+	});
+}
 
 //Useful functions that have NOT been tested
-exports.addDataPoint = function(dataPoint, cb) { //addDataPoints
-	var type = dataPoint.type;
-	if ((!~["checkbox", "radiobuttons", "dropdown", "text", "number"].indexOf(type)) ||
-		(~["radiobuttons", "dropdown"].indexOf(type) && !dataPoint.options) ||
-		(!~["radiobuttons", "dropdown"].indexOf(type) && dataPoint.options) ||
-		(type == "number" && !(typeof(dataPoint.min) == "number" && typeof(dataPoint.start) == "number")) ||
-		(type != "number" && (typeof(dataPoint.min) == "number" || typeof(dataPoint.max) == "number" || typeof(dataPoint.start) == "number")) ||
-		(typeof(dataPoint.context) != "string")){ //This was a switch-case but ben did not want that
-			cb(false);
-	}
-	else {
-		DataPoint.create(dataPoint, function(err) {
-    		cb(!err);
-   		});
+exports.addDataPoints = function(dataPoints, cb) {
+	var done = 0;
+	for (var i = 0; i < dataPoints.length; i++){
+		var dataPoint = dataPoints[i];
+		var type = dataPoint.type;
+		if ((!~["checkbox", "radiobuttons", "dropdown", "text", "number"].indexOf(type)) ||
+			(~["radiobuttons", "dropdown"].indexOf(type) && !dataPoint.options) ||
+			(!~["radiobuttons", "dropdown"].indexOf(type) && dataPoint.options) ||
+			(type == "number" && !(typeof(dataPoint.min) == "number" && typeof(dataPoint.start) == "number")) ||
+			(type != "number" && (typeof(dataPoint.min) == "number" || typeof(dataPoint.max) == "number" || typeof(dataPoint.start) == "number")) ||
+			(typeof(dataPoint.context) != "string")){ //This was a switch-case but ben did not want that
+				clearDataPoints(function(){ //if one data point is corrupt the form is rejected and all points are cleared
+					cb(false);
+					break;
+				});
+		}
+		else {
+			DataPoint.create(dataPoint, function(err) {
+				if (!err){
+					done++;
+					if (done == dataPoints.length){
+						cb(true);
+					}
+				}
+				else {
+					clearDataPoints(function(){ //if one data point is corrupt the form is rejected and all points are cleared
+						cb(false);
+						break;
+					});
+				}
+	   		});
+		}
 	}
 }
 

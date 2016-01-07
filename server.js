@@ -78,3 +78,24 @@ app.post("/getPitReports", function(req, res){
 		res.end(JSON.stringify(reports));
 	}));
 });
+
+app.post("/setScoutForm", function(req, res){//Set and edit scout form
+	var dataPoints = req.body;
+	Report.count({}, function(err, count){
+		if (!err && count == 0){
+			util.addDataPoints(dataPoints, function(formSet){//also removes previous data points
+				res.end(util.respond(formSet));
+			});
+		}
+		else {
+			res.end("fail");
+		}
+	});
+});
+
+app.post("/getScoutForm", function(req, res){//get?
+	DataPoint.find({}, function(err, dataPoints){//Gets match and pit forms
+		if (!err) res.end(JSON.stringify(dataPoints));
+		else res.end("fail");
+	});
+});
