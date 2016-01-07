@@ -1,8 +1,10 @@
 var mongoose = require("mongoose");
+var session = require("express-session");//needed?
 
 var DataPoint = require("./schemas/DataPoint.js");
 var Report = require("./schemas/Report.js");
 var User = require("./schemas/User.js");
+var Assignment = require("./schemas/Assignment.js");
 
 mongoose.connect("mongodb://localhost:27017/morscout");
 
@@ -54,6 +56,20 @@ exports.clearDataPoints = function(cb){
 	});
 }
 
+
+//Middleware (Do these work?)
+exports.requireAdmin = function(req, res, next){
+	if (req.session.user.admin) next();
+	else res.end("fail");
+}
+
+exports.requireLogin = function(req, res, next){
+	if (req.session.user) next();
+	else res.end("fail");
+}
+//^^^^^
+
+
 //Useful functions that have NOT been tested
 exports.addDataPoints = function(dataPoints, cb) {
 	var done = 0;
@@ -90,9 +106,11 @@ exports.addDataPoints = function(dataPoints, cb) {
 	}
 }
 
+
 exports.submitReport = function(report, cb){
 	validateReport(report, function(isValid){
 		if (isValid){
+			delete report.scout.password; //important
 			Report.create(report, function(err){
 				cb(!err);
 			});
@@ -137,6 +155,15 @@ exports.validateReport = function(report, cb) {
 		if ((report.context == "pit" && report.match) || (report.context == "match" && !report.match)) cb(false);
 		else cb(count == 0);
 	});
+}
+
+exports.getUser = function(id, cb){
+	User.findOne({
+		_id: id
+	}, function(err, user){ 
+		delete user.password; //important
+		cb(user);
+	})
 }
 
 exports.nameCase = function(str) {

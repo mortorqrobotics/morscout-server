@@ -3,8 +3,10 @@ var util = require("./util.js");
 var app = require("express")();
 var session = require("express-session");
 
+var DataPoint = require("./schemas/DataPoint.js");
+var Report = require("./schemas/Report.js");
 var User = require("./schemas/User.js");
-
+var Assignment = require("./schemas/Assignment.js");
 
 var server = null;
 
@@ -52,15 +54,15 @@ app.post("/login", function(req, res) {
 	});
 });
 
-app.post("/submitReport", function(req, res){
-	var report = req.body;//req.body contains data, team, context and match(if needed): NOT scouter info
-	report.scout = req.session.user; //scout must be User object and that is what this is
+app.post("/submitReport", util.requireLogin, function(req, res){ //Check all middleware
+	var report = req.body; //req.body contains data, team, context and match(if needed): NOT scouter info
+	report.scout = req.session.user._id;
 	util.submitReport(report, function(didSubmit){
 		res.end(util.respond(didSubmit));
 	});
 });
 
-app.post("/getMatchReports", function(req, res){
+app.post("/getMatchReports", util.requireLogin, function(req, res){
 	Report.find({
 		context: "match",//not needed
 		match: req.body.match,
@@ -70,7 +72,7 @@ app.post("/getMatchReports", function(req, res){
 	}));
 });
 
-app.post("/getPitReports", function(req, res){
+app.post("/getPitReports", util.requireLogin, function(req, res){
 	Report.find({
 		context: "pit",
 		team: req.body.team
@@ -79,7 +81,7 @@ app.post("/getPitReports", function(req, res){
 	}));
 });
 
-app.post("/setScoutForm", function(req, res){//Set and edit scout form
+app.post("/setScoutForm", util.requireAdmin, function(req, res){//Set and edit scout form
 	var dataPoints = req.body;
 	Report.count({}, function(err, count){
 		if (!err && count == 0){
@@ -93,9 +95,33 @@ app.post("/setScoutForm", function(req, res){//Set and edit scout form
 	});
 });
 
-app.post("/getScoutForm", function(req, res){//get?
+app.post("/getScoutForm", util.requireLogin, function(req, res){//get?
 	DataPoint.find({}, function(err, dataPoints){//Gets match and pit forms
 		if (!err) res.end(JSON.stringify(dataPoints));
 		else res.end("fail");
 	});
+});
+
+app.post("/assignTask", util.requireAdmin, function(req, res){
+	//req.body.scoutID is the _id of the user assigned the task
+	Assignment.create({
+		scout: req.body.scoutID,
+		task: req.body.task,
+		assignedBy: req.session.user._id
+	}, util.handleError(res, function(){
+		res.end("success");
+	}));
+});
+
+app.post("/showTasks", util.requireLogin, function(req, res){
+	if (req.body.userID == req.session.user._id || req.session.user.admin){ //So you can only view you own tasks if you aren't an admin
+		Assignment.find({
+			scout: req.body.userID
+		}, util.handleError(res, function(assignments){
+			res.end(JSON.stringify(assignments));
+		}));
+	}
+	else {
+		res.end("fail");
+	}
 });
