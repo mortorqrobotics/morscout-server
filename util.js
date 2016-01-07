@@ -80,6 +80,11 @@ exports.submitReport = function(report, cb){
 	});
 }
 
+exports.respond = function(success){
+	if (success) return "success";
+	else return "fail";
+}
+
 exports.validateReport = function(report, cb) {
 	DataPoint.count({
 		context: report.context,
@@ -106,7 +111,8 @@ exports.validateReport = function(report, cb) {
 			}
 		}
 	}, handleError(function(count) {
-		cb(count == 0);
+		if ((report.context == "pit" && report.match) || (report.context == "match" && !report.match)) cb(false);
+		else cb(count == 0);
 	});
 }
 

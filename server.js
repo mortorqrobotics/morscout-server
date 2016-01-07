@@ -51,3 +51,30 @@ app.post("/login", function(req, res) {
 		res.end("success");
 	});
 });
+
+app.post("/submitReport", function(req, res){
+	var report = req.body;//req.body contains data, team, context and match(if needed): NOT scouter info
+	report.scout = req.session.user; //scout must be User object and that is what this is
+	util.submitReport(report, function(didSubmit){
+		res.end(util.respond(didSubmit));
+	});
+});
+
+app.post("/getMatchReports", function(req, res){
+	Report.find({
+		context: "match",//not needed
+		match: req.body.match,
+		team: req.body.team
+	}, util.handleError(res, function(reports){
+		res.end(JSON.stringify(reports));
+	}));
+});
+
+app.post("/getPitReports", function(req, res){
+	Report.find({
+		context: "pit",
+		team: req.body.team
+	}, util.handleError(res, function(reports){
+		res.end(JSON.stringify(reports));
+	}));
+});
