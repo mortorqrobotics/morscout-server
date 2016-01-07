@@ -6,10 +6,28 @@ var User = require("./schemas/User.js");
 
 mongoose.connect("mongodb://localhost:27017/morscout");
 
-exports.handleError = function(cb){
+
+/* usage:
+
+asyncFunc(args, function(err, result) {
+	if(err) res.end("fail");
+	else {
+		use(result);
+	}
+});
+
+replaced by
+
+asyncFunc(args, util.handleError(res, function(result) {
+	use(result);
+}));
+
+*/
+
+exports.handleError = function(res, cb) {
 	return function(err) {
   		if(err) {
-   			console.log("fail");
+   			res.end("fail");
   		}
   		else {
    			var args = Array.prototype.slice.call(arguments, 1, arguments.length);
@@ -25,6 +43,10 @@ exports.validateSession = function(user, token, cb) {
 		//TODO: later
 	});
 };
+
+exports.hash = function(str){
+	//TODO: later
+}
 
 
 //Useful functions that have NOT been tested
@@ -87,3 +109,8 @@ exports.validateReport = function(report, cb) {
 		cb(count == 0);
 	});
 }
+
+exports.nameCase = function(str) {
+	str = str.trim().toLowerCase();
+	return str.charAt(0).toUpperCase() + str.substring(1);
+};

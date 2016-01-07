@@ -1,7 +1,7 @@
 var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 
-var User = require("./schemas/User.js");
+var User = require("./User.js");
 
 var reportSchema = new Schema({
     data: {type: Object, required: true},
@@ -12,6 +12,6 @@ var reportSchema = new Schema({
 });
 
 
-var Report = mongoose.model('Report', reportSchema);
+var Report = mongoose.model("Report", reportSchema);
 
 module.exports = Report;
