@@ -178,6 +178,17 @@ exports.getUserStats = function(userID, cb){
 			}, function(err, pitsScouted){
 				if (!err) {
 					stats.pitsScouted = pitsScouted;
+					Report.find({
+						_id: userID
+					}).distinct("team").count(function(err, count){//Test, i have seen this work, however.
+						if (!err){
+							stats.teamsScouted = count;
+							cb(null, stats);
+						}
+						else {
+							cb(err, null);
+						}
+					});
 					cb(null, stats);
 				}
 				else {
