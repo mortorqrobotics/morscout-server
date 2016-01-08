@@ -145,8 +145,8 @@ exports.validateReport = function(report, cb) {
 				if(dataPoint.options.indexOf(value) == -1) return true;
 			}
 		}
-	}, handleError(function(count) {
-		if ((report.context == "pit" && report.match) || (report.context == "match" && !report.match)){
+	}, function(err, count) {
+		if (err || (report.context == "pit" && report.match) || (report.context == "match" && !report.match)){
 			cb(false);
 		}else{
 			cb(count == 0);
