@@ -174,15 +174,15 @@ exports.getUserStats = function(userID, cb){
 			}, function(err, pitsScouted){
 				if (!err) {
 					stats.pitsScouted = pitsScouted;
-					return stats;
+					cb(null, stats);
 				}
 				else {
-					return {};
+					cb(err, null);
 				}
 			});
 		}
 		else {
-			return {};
+			cb(err, null);
 		}
 	});
 }
