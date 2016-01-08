@@ -138,3 +138,20 @@ app.post("/showTasks", util.requireLogin, function(req, res){
 		res.end("fail");
 	}
 });
+
+app.post("/getTeammatesInfo", util.requireLogin, function(req, res){
+	util.getTeammatesInfo(function(users){//will be team specific soon
+		res.end(JSON.stringify(users));
+	});
+});
+
+app.post("/getUserStats", util.requireLogin, function(req, res){//add for whole team at once too
+	util.getUserStats(req.body.userID, function(stats){
+		if (stats != {}){
+			res.end(JSON.stringify(stats));
+		}
+		else {
+			res.end("fail");
+		}
+	});
+});

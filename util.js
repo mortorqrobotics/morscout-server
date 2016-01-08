@@ -153,11 +153,45 @@ exports.validateReport = function(report, cb) {
 	});
 }
 
+exports.getTeammatesInfo = function(cb){//right now, team is same, later it won't be
+	User.find({}, "_id firstName lastName username admin", function(err, users){
+		if (!err) cb(users);
+		else cb([]);
+	});
+}
+
+exports.getUserStats = function(userID, cb){
+	var stats = {};
+	Report.count({
+		_id: userID,
+		context: "match"
+	}, function(err, matchesScouted){
+		if (!err) {
+			stats.matchesScouted = matchesScouted;
+			Report.count({
+				_id: userID,
+				context: "pit"
+			}, function(err, pitsScouted){
+				if (!err) {
+					stats.pitsScouted = pitsScouted;
+					return stats;
+				}
+				else {
+					return {};
+				}
+			});
+		}
+		else {
+			return {};
+		}
+	});
+}
+
 exports.getUser = function(id, cb){
 	User.findOne({
 		_id: id
-	}, function(err, user){
-		delete user.password; //important
+	}, "_id firstName lastName username admin", function(err, user){
+		//delete user.password; //important
 		cb(user);
 	})
 }
