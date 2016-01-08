@@ -167,19 +167,19 @@ exports.getTeammatesInfo = function(cb){//right now, team is same, later it won'
 exports.getUserStats = function(userID, cb){
 	var stats = {};
 	Report.count({
-		_id: userID,
+		scout: userID,
 		context: "match"
 	}, function(err, matchesScouted){
 		if (!err) {
 			stats.matchesScouted = matchesScouted;
 			Report.count({
-				_id: userID,
+				scout: userID,
 				context: "pit"
 			}, function(err, pitsScouted){
 				if (!err) {
 					stats.pitsScouted = pitsScouted;
 					Report.find({
-						_id: userID
+						scout: userID
 					}).distinct("team").count(function(err, count){//Test, i have seen this work, however.
 						if (!err){
 							stats.teamsScouted = count;
