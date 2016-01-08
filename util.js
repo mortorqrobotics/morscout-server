@@ -46,10 +46,6 @@ exports.validateSession = function(user, token, cb) {
 	});
 };
 
-exports.hash = function(str){
-	//TODO: later
-}
-
 exports.clearDataPoints = function(cb){
 	DataPoint.remove({}, function(){
 		cb();
@@ -160,7 +156,7 @@ exports.validateReport = function(report, cb) {
 exports.getUser = function(id, cb){
 	User.findOne({
 		_id: id
-	}, function(err, user){ 
+	}, function(err, user){
 		delete user.password; //important
 		cb(user);
 	})

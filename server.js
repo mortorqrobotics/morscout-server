@@ -25,7 +25,6 @@ app.post("/signup", function(req, res) {
 	var firstName = util.nameCase(req.body.firstName);
 	var lastName = util.nameCase(req.body.lastName);
 	var password = req.body.password;
-	var encryptedPassword = util.hash(password);//todo
 	User.count({
 		firstName: new RegExp("^" + firstName.charAt(0)),
 		lastName: lastName
@@ -36,7 +35,7 @@ app.post("/signup", function(req, res) {
 			firstName: firstName,
 			lastName: lastName,
 			username: username,
-			password: encryptedPassword,
+			password: password,
 			admin: false
 		}, util.handleError(res, function() {
 			res.end(username);
@@ -47,10 +46,24 @@ app.post("/signup", function(req, res) {
 app.post("/login", function(req, res) {
 	User.findOne({
 		username: req.body.username,
-		password: util.hash(req.body.password)
 	}, util.handleError(res, function(user){
-		req.session.user = user;
-		res.end("success");
+		if(user){
+			user.comparePassword(req.body.password, function(err, isMatch){
+				if(err){
+					console.error(err);
+					res.end("fail");
+				}else{
+					if(isMatch){
+						req.session.user = user;
+						res.end("success");
+					}else{
+						res.end("incorrect_password");
+					}
+				}
+			})
+		}else{
+			res.end("incorrect_username");
+		}
 	});
 });
 
