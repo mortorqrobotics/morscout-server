@@ -44,8 +44,10 @@ exports.validateSession = function(user, token, cb) {
 	});
 };
 
-exports.clearDataPoints = function(cb){
-	DataPoint.remove({}, function(){
+exports.clearDataPoints = function(teamCode, cb){
+	DataPoint.remove({
+		teamCode: teamCode
+	}, function(){
 		cb();
 	});
 }
@@ -65,10 +67,11 @@ exports.requireLogin = function(req, res, next){
 
 
 //Useful functions that have NOT been tested
-exports.addDataPoints = function(dataPoints, cb) {
+exports.addDataPoints = function(dataPoints, teamCode, cb) {
 	var done = 0;
 	for (var i = 0; i < dataPoints.length; i++){
 		var dataPoint = dataPoints[i];
+		dataPoint.teamCode = teamCode;
 		var type = dataPoint.type;
 		if ((!~["checkbox", "radiobuttons", "dropdown", "text", "number"].indexOf(type)) ||
 			(~["radiobuttons", "dropdown"].indexOf(type) && !dataPoint.options) ||
@@ -76,7 +79,7 @@ exports.addDataPoints = function(dataPoints, cb) {
 			(type == "number" && !(typeof(dataPoint.min) == "number" && typeof(dataPoint.start) == "number")) ||
 			(type != "number" && (typeof(dataPoint.min) == "number" || typeof(dataPoint.max) == "number" || typeof(dataPoint.start) == "number")) ||
 			(typeof(dataPoint.context) != "string")){ //This was a switch-case but ben did not want that
-				clearDataPoints(function(){ //if one data point is corrupt the form is rejected and all points are cleared
+				clearDataPoints(teamCode, function(){ //if one data point is corrupt the form is rejected and all points are cleared
 					cb(false);
 					break;
 				});
@@ -90,7 +93,7 @@ exports.addDataPoints = function(dataPoints, cb) {
 					}
 				}
 				else {
-					clearDataPoints(function(){ //if one data point is corrupt the form is rejected and all points are cleared
+					clearDataPoints(teamCode, function(){ //if one data point is corrupt the form is rejected and all points are cleared
 						cb(false);
 						break;
 					});
@@ -123,6 +126,7 @@ exports.respond = function(success){
 exports.validateReport = function(report, cb) {
 	DataPoint.count({
 		context: report.context,
+		teamCode: report.scoutTeamCode
 		$where: function(dataPoint) {
 			var pointID = dataPoint._id;
 			var value = report.data[pointID];
@@ -154,8 +158,10 @@ exports.validateReport = function(report, cb) {
 	});
 }
 
-exports.getTeammatesInfo = function(cb){//right now, team is same, later it won't be
-	User.find({}, "_id firstName lastName username admin", function(err, users){
+exports.getTeammatesInfo = function(teamCode, cb){//right now, team is same, later it won't be
+	User.find({
+		teamCode: teamCode
+	}, "_id firstName lastName teamCode username admin", function(err, users){
 		if (!err) {
 			cb(null, users);
 		}else{

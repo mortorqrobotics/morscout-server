@@ -23,24 +23,55 @@ module.exports = {
 	}
 };
 
+
+app.post("/registerTeam", function(req, res){//add on login too
+	Team.count({
+		teamCode: req.body.teamCode
+	}, util.handleError(res, function(count){
+		if (count == 0){
+			Team.create({
+				teamNumber: req.body.teamNumber
+				teamName: req.body.teamName,
+				teamCode: req.body.teamCode
+			}, util.handleError(res, function(){
+				res.end("success");
+			}));
+		}
+		else {
+			res.end("teamCode taken");
+		}
+	}));
+});
+
 app.post("/signup", function(req, res) {
 	var firstName = util.nameCase(req.body.firstName);
 	var lastName = util.nameCase(req.body.lastName);
+	var teamCode = req.body.teamCode;
 	var password = req.body.password;
 	User.count({
 		firstName: new RegExp("^" + firstName.charAt(0)),
 		lastName: lastName
 	}, util.handleError(res, function(count) {
-		var username = firstName.charAt(0).toLowerCase() + lastName.toLowerCase();
-		if(count > 0) username += count + 1;
-		User.create({
-			firstName: firstName,
-			lastName: lastName,
-			username: username,
-			password: password,
-			admin: false
-		}, util.handleError(res, function() {
-			res.end(username);
+		Team.count({
+			teamCode: teamCode
+		}, util.handleError(res, function(count){
+			if (count == 1){
+				var username = firstName.charAt(0).toLowerCase() + lastName.toLowerCase();
+				if(count > 0) username += count + 1;
+				User.create({
+					firstName: firstName,
+					lastName: lastName,
+					username: username,
+					teamCode: teamCode
+					password: password,
+					admin: false
+				}, util.handleError(res, function() {
+					res.end(username);
+				}));
+			}
+			else {
+				res.end("team does not exist");
+			}
 		}));
 	}));
 });
@@ -72,6 +103,7 @@ app.post("/login", function(req, res) {
 app.post("/submitReport", util.requireLogin, function(req, res){ //Check all middleware
 	var report = req.body; //req.body contains data, team, context and match(if needed): NOT scouter info
 	report.scout = req.session.user._id;
+	report.scoutTeamCode = req.session.user.teamCode;
 	util.submitReport(report, function(didSubmit){
 		res.end(util.respond(didSubmit));
 	});
@@ -82,6 +114,7 @@ app.post("/getMatchReports", util.requireLogin, function(req, res){
 		context: "match",//not needed
 		match: req.body.match,
 		team: req.body.team
+		scoutTeamCode: req.session.user.teamCode
 	}, util.handleError(res, function(reports){
 		res.end(JSON.stringify(reports));
 	}));
@@ -91,16 +124,19 @@ app.post("/getPitReports", util.requireLogin, function(req, res){
 	Report.find({
 		context: "pit",
 		team: req.body.team
+		scoutTeamCode: req.session.user.teamCode
 	}, util.handleError(res, function(reports){
 		res.end(JSON.stringify(reports));
 	}));
 });
 
 app.post("/setScoutForm", util.requireAdmin, function(req, res){//Set and edit scout form
-	var dataPoints = req.body;
-	Report.count({}, function(err, count){
+	var dataPoints = req.body;//[Object]
+	Report.count({
+		teamCode: req.session.user.teamCode
+	}, function(err, count){
 		if (!err && count == 0){
-			util.addDataPoints(dataPoints, function(formSet){//also removes previous data points
+			util.addDataPoints(dataPoints, req.session.user.teamCode, function(formSet){//also removes previous data points
 				res.end(util.respond(formSet));
 			});
 		}
@@ -111,7 +147,9 @@ app.post("/setScoutForm", util.requireAdmin, function(req, res){//Set and edit s
 });
 
 app.post("/getScoutForm", util.requireLogin, function(req, res){//get?
-	DataPoint.find({}, function(err, dataPoints){//Gets match and pit forms
+	DataPoint.find({
+		teamCode: req.session.user.teamCode
+	}, function(err, dataPoints){//Gets match and pit forms
 		if (!err) res.end(JSON.stringify(dataPoints));
 		else res.end("fail");
 	});
@@ -121,6 +159,7 @@ app.post("/assignTask", util.requireAdmin, function(req, res){
 	//req.body.scoutID is the _id of the user assigned the task
 	Assignment.create({
 		scout: req.body.scoutID,
+		teamCode: req.session.user.teamCode,
 		task: req.body.task,
 		assignedBy: req.session.user._id
 	}, util.handleError(res, function(){
@@ -131,7 +170,8 @@ app.post("/assignTask", util.requireAdmin, function(req, res){
 app.post("/showTasks", util.requireLogin, function(req, res){
 	if (req.body.userID == req.session.user._id || req.session.user.admin){ //So you can only view you own tasks if you aren't an admin
 		Assignment.find({
-			scout: req.body.userID
+			scout: req.body.userID,
+			teamCode: req.session.user.teamCode//
 		}, util.handleError(res, function(assignments){
 			res.end(JSON.stringify(assignments));
 		}));
@@ -142,7 +182,7 @@ app.post("/showTasks", util.requireLogin, function(req, res){
 });
 
 app.post("/getTeammatesInfo", util.requireLogin, function(req, res){
-	util.getTeammatesInfo(function(err, users){//will be team specific soon
+	util.getTeammatesInfo(req.session.user.teamCode, function(err, users){//will be team specific soon
 		res.end(JSON.stringify(users));
 	});
 });

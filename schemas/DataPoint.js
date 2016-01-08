@@ -5,6 +5,7 @@ var dataPointSchema = new Schema({
 	name: {type: String, required: true},
 	type: {type: String, required: true},//number, text, radiobutton, dropdown, checkbox
 	context: {type: String, required: true},//pit or match
+	teamCode: {type: String, required: true},
 	min: {type: Number, required: false},
 	max: {type: Number, required: false},
 	start: {type: Number, required: false},

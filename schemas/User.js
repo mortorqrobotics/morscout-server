@@ -7,6 +7,7 @@ var userSchema = new Schema({
 	firstName: {type: String, required: true},
 	lastName: {type: String, required: true},
 	username: {type: String, required: true},
+	teamCode: {type: String, required: true},
 	password: {type: String, required: true},//encrypted
 	admin: {type: Boolean, required: true}
 }));
