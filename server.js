@@ -10,6 +10,8 @@ var Assignment = require("./schemas/Assignment.js");
 
 var server = null;
 
+mongoose.connect("mongodb://localhost:27017/morscout");
+
 module.exports = {
 	start: function() {
 		server = app.listen(80);

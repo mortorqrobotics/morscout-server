@@ -6,8 +6,6 @@ var Report = require("./schemas/Report.js");
 var User = require("./schemas/User.js");
 var Assignment = require("./schemas/Assignment.js");
 
-mongoose.connect("mongodb://localhost:27017/morscout");
-
 
 /* usage:
 
@@ -97,7 +95,7 @@ exports.addDataPoints = function(dataPoints, cb) {
 						break;
 					});
 				}
-	   		});
+	   	});
 		}
 	}
 }
@@ -148,15 +146,21 @@ exports.validateReport = function(report, cb) {
 			}
 		}
 	}, handleError(function(count) {
-		if ((report.context == "pit" && report.match) || (report.context == "match" && !report.match)) cb(false);
-		else cb(count == 0);
+		if ((report.context == "pit" && report.match) || (report.context == "match" && !report.match)){
+			cb(false);
+		}else{
+			cb(count == 0);
+		}
 	});
 }
 
 exports.getTeammatesInfo = function(cb){//right now, team is same, later it won't be
 	User.find({}, "_id firstName lastName username admin", function(err, users){
-		if (!err) cb(users);
-		else cb([]);
+		if (!err) {
+			cb(null, users);
+		}else{
+			cb(err, null);
+		}
 	});
 }
 
@@ -191,8 +195,11 @@ exports.getUser = function(id, cb){
 	User.findOne({
 		_id: id
 	}, "_id firstName lastName username admin", function(err, user){
-		//delete user.password; //important
-		cb(user);
+		if(err){
+			cb(err, null);
+		}else{
+			cb(null, user);
+		}
 	})
 }
 
