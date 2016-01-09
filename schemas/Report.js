@@ -9,7 +9,8 @@ var reportSchema = new Schema({
     scoutTeamCode: {type: String, required: true},
     team: {type: Number, required: true},
     context: {type: String, required: true},
-    match: {type: Number, required: false}
+    match: {type: Number, required: false},
+    imagePaths: {type: [String], required: true}//[] = no images
 });
 
 

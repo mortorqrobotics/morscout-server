@@ -2,6 +2,7 @@ var mongoose = require("mongoose");
 var util = require("./util.js");
 var app = require("express")();
 var session = require("express-session");
+var fs = require("fs");
 
 var DataPoint = require("./schemas/DataPoint.js");
 var Report = require("./schemas/Report.js");
@@ -15,6 +16,9 @@ mongoose.connect("mongodb://localhost:27017/morscout");
 module.exports = {
 	start: function() {
 		server = app.listen(80);
+		if(!fs.existsSync("pitImages")) {
+			fs.mkdirSync("pitImages");
+		}
 	},
 	stop: function() {
 		if(server) {
@@ -101,8 +105,9 @@ app.post("/login", function(req, res) {
 });
 
 app.post("/submitReport", util.requireLogin, function(req, res){ //Check all middleware
-	var report = req.body; //req.body contains data, team, context and match(if needed): NOT scouter info
+	var report = req.body; //req.body contains data, team, context, match(if needed), and images([Object]): NOT scouter info
 	report.scout = req.session.user._id;
+	if (!report.images || report.context == "match") report.images = [];
 	report.scoutTeamCode = req.session.user.teamCode;
 	util.submitReport(report, function(didSubmit){
 		res.end(util.respond(didSubmit));
@@ -126,7 +131,32 @@ app.post("/getPitReports", util.requireLogin, function(req, res){
 		team: req.body.team
 		scoutTeamCode: req.session.user.teamCode
 	}, util.handleError(res, function(reports){
-		res.end(JSON.stringify(reports));
+		var reportDone = 0;
+		for (var i = 0; i < reports.length; i++){
+			var report = reports[i];
+			var imageBuffers = [];
+			var imagesDone = 0;
+			if (report.imagePaths.length == 0){//if it has no images
+				delete report.imagePaths;
+				report.imageBuffers = [];
+				reportDone++;
+			}
+			for (var j = 0; j < report.imagePaths; j++){//if it has images
+				var imagePath = imagePaths[j];
+				fs.readFileSync(imagePath, function(err, buffer){//check cb args
+					imagesDone++;
+					imageBuffers.push(buffer);
+					if (imagesDone == imagePaths.length){
+						delete report.imagePaths;
+						report.imageBuffers = imageBuffers;
+						reportDone++;
+					}
+				});
+			}
+			if (reportDone == reports.length){
+				res.end(reports);
+			}
+		}
 	}));
 });
 
