@@ -89,16 +89,26 @@ app.post("/login", function(req, res) {
 				if(err){
 					console.error(err);
 					res.end("fail");
-				}else{
+				}
+				else{
 					if(isMatch){
 						req.session.user = user;
-						res.end("success");
-					}else{
+						delete user.password;
+						Team.find({
+							teamCode: user.teamCode
+						}, handleError(res, function(teamInfo){
+							user.teamName = teamInfo.teamName;
+							user.teamNumber = teamInfo.teamNumber;
+							res.end(user);//user contains firstName, lastName, username, teamCode, teamName, teamNumber, and admin(boolean)
+						}));
+					}
+					else{
 						res.end("incorrect_password");
 					}
 				}
 			})
-		}else{
+		}
+		else{
 			res.end("incorrect_username");
 		}
 	});
