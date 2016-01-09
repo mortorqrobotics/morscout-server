@@ -105,7 +105,7 @@ app.post("/login", function(req, res) {
 });
 
 app.post("/submitReport", util.requireLogin, function(req, res){ //Check all middleware
-	var report = req.body; //req.body contains data, team, context, match(if needed), and images([Object]): NOT scouter info
+	var report = req.body; //req.body contains data, team, context, match(if needed), isPrivate, and images([Object]): NOT scouter info
 	report.scout = req.session.user._id;
 	if (!report.images || report.context == "match") report.images = [];
 	report.scoutTeamCode = req.session.user.teamCode;
@@ -123,6 +123,17 @@ app.post("/getMatchReports", util.requireLogin, function(req, res){
 	}, util.handleError(res, function(reports){
 		res.end(JSON.stringify(reports));
 	}));
+});
+
+app.post("/getTeamReports", util.requireLogin, function(req, res){
+	util.getTeamReports(req.session.user.teamCode, req.body.teamNumber, req.body.reportContext, function(allReports){
+		if (allReports) {
+			res.end(JSON.stringify(allReports));
+		}
+		else {
+			res.end("fail");
+		}
+	});
 });
 
 app.post("/getPitReports", util.requireLogin, function(req, res){

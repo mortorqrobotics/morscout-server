@@ -145,36 +145,42 @@ exports.respond = function(success) {
     else return "fail";
 }
 
-exports.validateReport = function(report, cb) {
-    DataPoint.count({
-        context: report.context,
-        teamCode: report.scoutTeamCode
-        $where: function(dataPoint) {
-            var pointID = dataPoint._id;
-            var value = report.data[pointID];
-            if (typeof(value) == "undefined") return true;
-            var type = dataPoint.type;
-            if (type == "checkbox") {
-                if (typeof(value) != "boolean") return true;
-            } else if (type == "text") {
-                if (typeof(value) != "string") return true;
-            } else if (type == "number") {
-                if (typeof(value) != "number") return true;
-                else if (value % 1 != 0) return true;
-                else if (value < dataPoint.min) return true;
-                else if (typeof(dataPoint.max) != "undefined" && value > dataPoint.max) return true;
-            } else if (type == "checkbox" || type == "radiobutton") {
-                if (typeof(value) != "string") return true;
-                if (dataPoint.options.indexOf(value) == -1) return true;
+exports.validateReport = function(report, cb) {//this needs to be checked
+    if (context == "pit" || context == "match"){
+        DataPoint.count({
+            context: report.context,
+            teamCode: report.scoutTeamCode
+            $where: function(dataPoint) {
+                var pointID = dataPoint._id;
+                var value = report.data[pointID];
+                if (typeof(value) == "undefined") return true;
+                var type = dataPoint.type;
+                if (type == "checkbox") {
+                    if (typeof(value) != "boolean") return true;
+                } else if (type == "text") {
+                    if (typeof(value) != "string") return true;
+                } else if (type == "number") {
+                    if (typeof(value) != "number") return true;
+                    else if (value % 1 != 0) return true;
+                    else if (value < dataPoint.min) return true;
+                    else if (typeof(dataPoint.max) != "undefined" && value > dataPoint.max) return true;
+                } else if (type == "checkbox" || type == "radiobutton") {
+                    if (typeof(value) != "string") return true;
+                    if (dataPoint.options.indexOf(value) == -1) return true;
+                }
             }
-        }
-    }, function(err, count) {
-        if (err || (report.context == "pit" && report.match) || (report.context == "match" && !report.match) || ) {
-            cb(false);
-        } else {
-            cb(count == 0);
-        }
-    });
+        }, function(err, count) {
+            if (err || (report.context == "pit" && report.match) || (report.context == "match" && !report.match) || ) {
+                cb(false);
+            } else {
+                cb(count == 0);
+            }
+        });
+    }
+    else {
+        cb(false);
+    }
+
 }
 
 exports.getTeammatesInfo = function(teamCode, cb) { //right now, team is same, later it won't be
@@ -224,7 +230,41 @@ exports.getUserStats = function(userID, cb) {
     });
 }
 
-exports.getUser = function(id, cb) {
+exports.getTeamReports = function(scoutTeamCode, teamNumber, reportContext, cb){
+	var allReports = {yourTeam:[], otherTeams:[]};
+    if (reportContext == "pit" || reportContext == "match"){
+        Report.find({
+            team: teamNumber,
+            context: reportContext,
+            isPrivate: false
+        }, "data scout team match" function(err, pitReports){
+            if (!err){
+                allReports.otherTeams = pitReports;
+                Report.find({
+                    team: teamNumber,
+                    context: reportContext,
+                    scoutTeamCode: scoutTeamCode
+                }, "data scout team match", function(err, pitReports){
+                    if (!err){
+                        allReports.yourTeam = pitReports;
+                        cb(allReports);
+                    }
+                    else {
+                        cb(false);
+                    }
+                });
+            }
+            else {
+                cb(false);
+            }
+        });
+    }
+    else {
+        cb(false);
+    }
+}
+
+exports.getUser = function(id, cb) {//.populate maybe?
     User.findOne({
         _id: id
     }, "_id firstName lastName username admin", function(err, user) {
