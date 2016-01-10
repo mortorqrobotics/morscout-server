@@ -138,7 +138,7 @@ app.post("/chooseCurrentRegional", util.requireAdmin, function(req, res) {
 	util.getTeamInfoForUser(req.session.user.teamCode, function(team){
 		if (team){
 			util.request("/team/frc" + team.teamNumber + "/" + req.body.year + "/events", function(events){
-				if (events && events.length > 0) {
+				if (typeof(events) == "object" && events.length > 0) {//array
 					for (var i = 0; i < events.length; i++){
 						var registeredForRegional = false;
 						if (req.body.eventCode == events[i].key){
@@ -174,7 +174,7 @@ app.post("/getMatchesForCurrentRegional", util.requireLogin, function(req, res){
 	util.getTeamInfoForUser(req.session.user.teamCode, function(team){
 		if (team){
 			util.request("/team/frc" + team.teamNumber + "/event/" + team.currentRegional + "/matches", function(matches){
-				if (matches) res.end(JSON.stringify(matches));
+				if (typeof(matches) == "object") res.end(JSON.stringify(matches));//array
 				else res.end("fail");
 			});
 		}
@@ -299,6 +299,42 @@ app.post("/setScoutForm", util.requireAdmin, function(req, res){//Set and edit s
             res.end("fail");
         }
     });
+});
+
+app.post("/getTeamListForRegional", util.requireLogin, function(req, res){
+	util.getTeamInfoForUser(req.session.user.teamCode, function(team){
+		if (team){
+			util.request("/event/" + team.currentRegional + "/teams", function(teams){
+				if (typeof(teams) == "object"){//arr
+					res.end(JSON.stringify(teams));
+				}
+				else {
+					res.end("fail");
+				}
+			});
+		}
+		else {
+			res.end("fail");
+		}
+	});
+});
+//Consider merging ^ and v
+app.post("/getRankingsForRegional", util.requireLogin, function(req, res){
+	util.getTeamInfoForUser(req.session.user.teamCode, function(team){
+		if (team){
+			util.request("/event/" + team.currentRegional + "/rankings", function(rankings){
+				if (typeof(rankings) == "object"){//arr
+					res.end(JSON.stringify(rankings));
+				}
+				else {
+					res.end("fail");
+				}
+			});
+		}
+		else {
+			res.end("fail");
+		}
+	});
 });
 
 app.post("/getScoutForm", util.requireLogin, function(req, res){//get?
