@@ -8,7 +8,7 @@ var assignmentSchema = new Schema({
 	teamCode: {type: String, required: true},
 	task: {type: String, required: true},
 	assignedBy: {type: Schema.Types.ObjectId, ref: "User", required: true},
-}));
+});
 
 var Assignment = mongoose.model("Assignment", assignmentSchema);
 

@@ -81,7 +81,7 @@ exports.addDataPoints = function(dataPoints, teamCode, cb) {
             (typeof(dataPoint.context) != "string")) { //This was a switch-case but ben did not want that
             clearDataPoints(teamCode, function() { //if one data point is corrupt the form is rejected and all points are cleared
                 cb(false);
-                break;
+                //break;
             });
         } else {
             DataPoint.create(dataPoint, function(err) {
@@ -93,7 +93,7 @@ exports.addDataPoints = function(dataPoints, teamCode, cb) {
                 } else {
                     clearDataPoints(teamCode, function() { //if one data point is corrupt the form is rejected and all points are cleared
                         cb(false);
-                        break;
+                        //break;
                     });
                 }
             });
@@ -149,7 +149,7 @@ exports.validateReport = function(report, cb) {//this needs to be checked
     if (context == "pit" || context == "match"){
         DataPoint.count({
             context: report.context,
-            teamCode: report.scoutTeamCode
+            teamCode: report.scoutTeamCode,
             $where: function(dataPoint) {
                 var pointID = dataPoint._id;
                 var value = report.data[pointID];
@@ -170,7 +170,7 @@ exports.validateReport = function(report, cb) {//this needs to be checked
                 }
             }
         }, function(err, count) {
-            if (err || (report.context == "pit" && report.match) || (report.context == "match" && !report.match) || ) {
+            if (err || (report.context == "pit" && report.match) || (report.context == "match" && !report.match) /*||*/ ) {
                 cb(false);
             } else {
                 cb(count == 0);
@@ -237,7 +237,7 @@ exports.getTeamReports = function(scoutTeamCode, teamNumber, reportContext, cb){
             team: teamNumber,
             context: reportContext,
             isPrivate: false
-        }, "data scout team match" function(err, pitReports){
+        }, "data scout team match", function(err, pitReports){
             if (!err){
                 allReports.otherTeams = pitReports;
                 Report.find({

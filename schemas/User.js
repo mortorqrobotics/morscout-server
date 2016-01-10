@@ -10,7 +10,7 @@ var userSchema = new Schema({
 	teamCode: {type: String, required: true},
 	password: {type: String, required: true},//encrypted
 	admin: {type: Boolean, required: true}
-}));
+});
 
 userSchema.pre('save', function(next) {
   var user = this;
