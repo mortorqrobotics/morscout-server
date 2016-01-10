@@ -55,22 +55,28 @@ app.post("/signup", function(req, res) {
 	User.count({
 		firstName: new RegExp("^" + firstName.charAt(0)),
 		lastName: lastName
-	}, util.handleError(res, function(count) {
+	}, util.handleError(res, function(countNames) {
 		Team.count({
 			teamCode: teamCode
-		}, util.handleError(res, function(count){
-			if (count == 1){
-				var username = firstName.charAt(0).toLowerCase() + lastName.toLowerCase();
-				if(count > 0) username += count + 1;
-				User.create({
-					firstName: firstName,
-					lastName: lastName,
-					username: username,
-					teamCode: teamCode,
-					password: password,
-					admin: false
-				}, util.handleError(res, function() {
-					res.end(username);
+		}, util.handleError(res, function(numberOfTeamsWithCode){
+			if (numberOfTeamsWithCode == 1){
+				User.count({
+					teamCode: teamCode
+				}, handleError(res, function(usersInTeam){
+					var username = firstName.charAt(0).toLowerCase() + lastName.toLowerCase();
+					var isAdmin = false;
+					if (usersInTeam == 0) isAdmin = true;
+					if(countNames > 0) username += countNames + 1;
+					User.create({
+						firstName: firstName,
+						lastName: lastName,
+						username: username,
+						teamCode: teamCode,
+						password: password,
+						admin: isAdmin
+					}, util.handleError(res, function() {
+						res.end(username);
+					}));
 				}));
 			}
 			else {
@@ -114,25 +120,117 @@ app.post("/login", function(req, res) {
     }));
 });
 
+app.post("/getRegionalsForTeam", util.requireLogin, function(req, res) {
+	util.getTeamInfoForUser(req.session.user.teamCode, function(team){
+		if (team){
+			util.request("/team/frc" + team.teamNumber + "/" + req.body.year + "/events", function(events){
+				if (events) res.end(JSON.stringify(events));
+				else res.end("fail")
+			});
+		}
+		else {
+			res.end("fail");
+		}
+	});
+});
+
+app.post("/chooseCurrentRegional", util.requireAdmin, function(req, res) {
+	util.getTeamInfoForUser(req.session.user.teamCode, function(team){
+		if (team){
+			util.request("/team/frc" + team.teamNumber + "/" + req.body.year + "/events", function(events){
+				if (events && events.length > 0) {
+					for (var i = 0; i < events.length; i++){
+						var registeredForRegional = false;
+						if (req.body.eventCode == events[i].key){
+							registeredForRegional = true;
+							break;
+						}
+					}
+					if (registeredForRegional){
+						Team.update({
+							teamCode: req.session.user.teamCode
+						},{
+							currentRegional: req.body.eventCode
+						}, util.handleError(res, function(){
+							res.end("success");
+						}));
+					}
+					else {
+						res.end("not registered for this regional");
+					}
+				}
+				else {
+					res.end("fail");
+				}
+			});
+		}
+		else {
+			res.end("fail");
+		}
+	});
+});
+
+app.post("/getMatchesForCurrentRegional", util.requireLogin, function(req, res){
+	util.getTeamInfoForUser(req.session.user.teamCode, function(team){
+		if (team){
+			util.request("/team/frc" + team.teamNumber + "/event/" + team.currentRegional + "/matches", function(matches){
+				if (matches) res.end(JSON.stringify(matches));
+				else res.end("fail");
+			});
+		}
+		else {
+			res.end("fail");
+		}
+	});
+});
+
 app.post("/submitReport", util.requireLogin, function(req, res){ //Check all middleware
     var report = req.body; //req.body contains data, team, context, match(if needed), isPrivate, and images([Object]): NOT scouter info
     report.scout = req.session.user._id;
     if (!report.images || report.context == "match") report.images = [];
     report.scoutTeamCode = req.session.user.teamCode;
-    util.submitReport(report, function(didSubmit){
-        res.end(util.respond(didSubmit));
-    });
+	util.getTeamInfoForUser(report.scout, function(team){
+		if (team.currentRegional){
+			report.event = team.currentRegional;
+			util.submitReport(report, function(didSubmit){
+		        res.end(util.respond(didSubmit));
+		    });
+		}
+		else {
+			res.end("fail");
+		}
+	});
 });
 
 app.post("/getMatchReports", util.requireLogin, function(req, res){
-    Report.find({
-        context: "match",//not needed
-        match: req.body.match,
-        team: req.body.team,
-        scoutTeamCode: req.session.user.teamCode
-    }, util.handleError(res, function(reports){
-        res.end(JSON.stringify(reports));
-    }));
+	util.getTeamInfoForUser(req.session.user.teamCode, function(team){
+		var allReports = {yourTeam:[], otherTeams:[]};
+		if (team){
+			Report.find({
+		        context: "match",
+		        match: req.body.match,
+		        team: req.body.team,
+				event: team.currentRegional,
+		        scoutTeamCode: req.session.user.teamCode
+		    }, util.handleError(res, function(yourReports){
+		        allReports.yourTeam = reports;
+				Report.find({
+			        context: "match",
+			        match: req.body.match,
+			        team: req.body.team,
+					event: team.currentRegional,
+					isPrivate: false,
+			        scoutTeamCode: {$ne: req.session.user.teamCode}
+			    }, "data scout team match event imagePaths", util.handleError(res, function(otherReports){
+			        allReports.otherTeams = otherReports;
+					res.end(JSON.stringify(allReports));
+			    }));
+		    }));
+		}
+		else {
+			res.end("fail");
+		}
+	});
 });
 
 app.post("/getTeamReports", util.requireLogin, function(req, res){
@@ -146,40 +244,46 @@ app.post("/getTeamReports", util.requireLogin, function(req, res){
     });
 });
 
-app.post("/getPitReports", util.requireLogin, function(req, res){
-    Report.find({
-        context: "pit",
-        team: req.body.team,
-        scoutTeamCode: req.session.user.teamCode
-    }, util.handleError(res, function(reports){
-        var reportDone = 0;
-        for (var i = 0; i < reports.length; i++){
-            var report = reports[i];
-            var imageBuffers = [];
-            var imagesDone = 0;
-            if (report.imagePaths.length == 0){//if it has no images
-                delete report.imagePaths;
-                report.imageBuffers = [];
-                reportDone++;
-            }
-            for (var j = 0; j < report.imagePaths; j++){//if it has images
-                var imagePath = imagePaths[j];
-                fs.readFileSync(imagePath, function(err, buffer){//check cb args
-                    imagesDone++;
-                    imageBuffers.push(buffer);
-                    if (imagesDone == imagePaths.length){
-                        delete report.imagePaths;
-                        report.imageBuffers = imageBuffers;
-                        reportDone++;
-                    }
-                });
-            }
-            if (reportDone == reports.length){
-                res.end(reports);
-            }
-        }
-    }));
-});
+/*app.post("/getPitReports", util.requireLogin, function(req, res){
+	util.getTeamInfoForUser(req.session.user.teamCode, function(team){
+		if (team){
+		    Report.find({
+		        context: "pit",
+		        team: req.body.team,
+		        scoutTeamCode: req.session.user.teamCode
+		    }, util.handleError(res, function(reports){
+		        var reportDone = 0;
+		        for (var i = 0; i < reports.length; i++){
+		            var report = reports[i];
+		            var imageBuffers = [];
+		            var imagesDone = 0;
+		            if (report.imagePaths.length == 0){//if it has no images
+		                delete report.imagePaths;
+		                report.imageBuffers = [];
+		                reportDone++;
+		            }
+		            for (var j = 0; j < report.imagePaths; j++){//if it has images
+		                var imagePath = imagePaths[j];
+		                fs.readFileSync(imagePath, function(err, buffer){//check cb args
+		                    imagesDone++;
+		                    imageBuffers.push(buffer);
+		                    if (imagesDone == imagePaths.length){
+		                        delete report.imagePaths;
+		                        report.imageBuffers = imageBuffers;
+		                        reportDone++;
+		                    }
+		                });
+		            }
+		            if (reportDone == reports.length){
+		                res.end(reports);
+		            }
+		        }
+	    	}));
+		}
+		else {
+			res.end("fail");
+		}
+});*/
 
 app.post("/setScoutForm", util.requireAdmin, function(req, res){//Set and edit scout form
     var dataPoints = req.body;//[Object]

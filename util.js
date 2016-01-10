@@ -1,6 +1,7 @@
 var mongoose = require("mongoose");
 var session = require("express-session"); //needed?
 var fs = require("fs");
+var http = require("http");
 
 var DataPoint = require("./schemas/DataPoint.js");
 var Report = require("./schemas/Report.js");
@@ -105,6 +106,23 @@ exports.addDataPoints = function(dataPoints, teamCode, cb) {
         }
     }
 }
+
+exports.request function request(path, cb) {//I will make this function better using express later
+    http.request({
+        host : "www.thebluealliance.com",
+        path : "/api/v2" + path,
+        headers : {"X-TBA-App-Id" : "frc1515:MorScout:2.0"}
+    }, function(res) {
+        var data = "";
+        res.on("data", function(chunk) {
+            data += chunk;
+        });
+        res.on("end", function() {
+            cb(JSON.parse(data));
+        });
+    }).end();
+}
+
 exports.randomStr = function(length) {
     var token = "";
     for (var i = 0; i < length; i++) {
@@ -236,26 +254,31 @@ exports.getUserStats = function(userID, cb) {
 
 exports.getTeamReports = function(scoutTeamCode, teamNumber, reportContext, cb){
 	var allReports = {yourTeam:[], otherTeams:[]};
-    if (reportContext == "pit" || reportContext == "match"){
+    if (reportContext == "match" || reportContext == "pit"){
         Report.find({
             team: teamNumber,
             context: reportContext,
-            isPrivate: false
-        }, "data scout team match", function(err, pitReports){
+            isPrivate: false,
+            scoutTeamCode: {$ne: scoutTeamCode}
+        }, "data scout team match event imagePaths", function(err, otherTeamReports){
             if (!err){
-                allReports.otherTeams = pitReports;
-                Report.find({
-                    team: teamNumber,
-                    context: reportContext,
-                    scoutTeamCode: scoutTeamCode
-                }, "data scout team match", function(err, pitReports){
-                    if (!err){
-                        allReports.yourTeam = pitReports;
-                        cb(allReports);
-                    }
-                    else {
-                        cb(false);
-                    }
+                addImagesToReports(otherTeamReports, function(newOtherTeamReports){
+                    allReports.otherTeams = newOtherMatchReports;
+                    Report.find({
+                        team: teamNumber,
+                        context: reportContext,
+                        scoutTeamCode: scoutTeamCode
+                    }, "data scout team match event imagePaths", function(err, yourTeamReports){
+                        if (!err){
+                            addImagesToReports(yourTeamReports, function(newYourTeamReports){
+                                allReports.yourTeam = newYourTeamReports;
+                                cb(allReports);
+                            });
+                        }
+                        else {
+                            cb(false);
+                        }
+                    });
                 });
             }
             else {
@@ -266,6 +289,45 @@ exports.getTeamReports = function(scoutTeamCode, teamNumber, reportContext, cb){
     else {
         cb(false);
     }
+}
+
+exports.addImagesToReports = function(reports, cb){
+    for (var i = 0; i < reports.length; i++){
+        var report = reports[i];
+        var imageBuffers = [];
+        var imagesDone = 0;
+        if (report.imagePaths.length == 0){//if it has no images
+            delete report.imagePaths;
+            report.imageBuffers = [];
+            reportDone++;
+            if (reportDone == reports.length){
+                cb(reports);
+            }
+        }
+        for (var j = 0; j < report.imagePaths; j++){//if it has images
+            var imagePath = imagePaths[j];
+            fs.readFileSync(imagePath, function(err, buffer){//check cb args
+                imagesDone++;
+                imageBuffers.push(buffer);
+                if (imagesDone == imagePaths.length){
+                    delete report.imagePaths;
+                    report.imageBuffers = imageBuffers;
+                    reportDone++;
+                    if (reportDone == reports.length){
+                        cb(reports);
+                    }
+                }
+            });
+        }
+    }
+}
+
+exports.getTeamInfoForUser = function(teamCode, cb){
+    Team.findOne({
+        teamCode: teamCode
+    }, function(err, team){
+        cb(team);
+    });
 }
 
 exports.getUser = function(id, cb) {//.populate maybe?

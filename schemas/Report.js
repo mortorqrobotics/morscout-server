@@ -11,6 +11,7 @@ var reportSchema = new Schema({
     team: {type: Number, required: true},
     context: {type: String, required: true},
     match: {type: Number, required: false},
+    event: {type: String, required: true},
     imagePaths: {type: [String], required: true}//[] = no images
 });
 
