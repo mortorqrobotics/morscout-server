@@ -3,6 +3,7 @@ var session = require("express-session"); //needed?
 var fs = require("fs");
 var http = require("http");
 
+var Team = require("./schemas/Team.js");
 var DataPoint = require("./schemas/DataPoint.js");
 var Report = require("./schemas/Report.js");
 var User = require("./schemas/User.js");
@@ -81,7 +82,7 @@ exports.addDataPoints = function(dataPoints, teamCode, cb) {
                 (!~["radiobuttons", "dropdown"].indexOf(type) && dataPoint.options) ||
                 (type == "number" && !(typeof(dataPoint.min) == "number" && typeof(dataPoint.start) == "number")) ||
                 (type != "number" && (typeof(dataPoint.min) == "number" || typeof(dataPoint.max) == "number" || typeof(dataPoint.start) == "number")) ||
-                (typeof(dataPoint.context) != "string")) { //This was a switch-case but ben did not want that
+                (dataPoint.context != "match" && dataPoint.context != "pit")) { //This was a switch-case but ben did not want that
                 clearDataPoints(teamCode, function() { //if one data point is corrupt the form is rejected and all points are cleared
                     allPointsValid = false;
                 });
@@ -167,7 +168,7 @@ exports.respond = function(success) {
     else return "fail";
 }
 
-exports.validateReport = function(report, cb) {//this needs to be checked
+exports.validateReport = function(report, cb) {
     if (context == "pit" || context == "match"){
         DataPoint.count({
             context: report.context,

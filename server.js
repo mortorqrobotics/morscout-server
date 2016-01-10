@@ -5,6 +5,7 @@ var session = require("express-session");
 var fs = require("fs");
 
 var DataPoint = require("./schemas/DataPoint.js");
+var Team = require("./schemas/Team.js");
 var Report = require("./schemas/Report.js");
 var User = require("./schemas/User.js");
 var Assignment = require("./schemas/Assignment.js");
@@ -12,6 +13,11 @@ var Assignment = require("./schemas/Assignment.js");
 var server = null;
 
 mongoose.connect("mongodb://localhost:27017/morscout");
+
+var server = app.listen(8080);
+if(!fs.existsSync("pitImages")) {
+	fs.mkdirSync("pitImages");
+}
 
 module.exports = {
 	start: function() {
