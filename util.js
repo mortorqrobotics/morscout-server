@@ -108,7 +108,7 @@ exports.addDataPoints = function(dataPoints, teamCode, cb) {
     }
 }
 
-exports.request function request(path, cb) {//I will make this function better using express later
+exports.request = function request(path, cb) {//I will make this function better using express later
     http.request({
         host : "www.thebluealliance.com",
         path : "/api/v2" + path,

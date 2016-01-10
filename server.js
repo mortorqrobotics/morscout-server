@@ -10,14 +10,19 @@ var Report = require("./schemas/Report.js");
 var User = require("./schemas/User.js");
 var Assignment = require("./schemas/Assignment.js");
 
-var server = null;
-
 mongoose.connect("mongodb://localhost:27017/morscout");
 
+var server = null;
+
 var server = app.listen(8080);
+
 if(!fs.existsSync("pitImages")) {
 	fs.mkdirSync("pitImages");
 }
+
+app.get("/", function(req, res){
+	res.sendFile(__dirname + "/test.html");
+});
 
 module.exports = {
 	start: function() {
@@ -104,8 +109,8 @@ app.post("/login", function(req, res) {
                 }
                 else{
                     if(isMatch){
+						delete user.password;
                         req.session.user = user;
-                        delete user.password;
                         Team.find({
                             teamCode: user.teamCode
                         }, handleError(res, function(teamInfo){
