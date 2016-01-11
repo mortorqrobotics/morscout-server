@@ -113,6 +113,31 @@ exports.addDataPoints = function(dataPoints, teamCode, cb) {
     });
 }
 
+exports.sendEmail = function (to, subject, text, cb){//TEMPORARY, make this work with Mailgun, it is a placeholder
+    var transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",//Use mailgun later
+      secure: true,
+      port: 465,
+      auth: {
+        user: "",//Add valid email
+        pass: ""//Add valid pass -config file?
+      }
+    });
+    transporter.sendMail({
+        from: "support@morscout.com",
+        to: to,
+        subject: subject,
+        html: text
+    }, function(err, response){
+        if(err){
+            cb(false);
+        }else{
+            cb(true);
+        }
+        transporter.close();
+    });
+}
+
 exports.request = function request(path, cb) {//I will make this function better using express later
     http.request({
         host : "www.thebluealliance.com",

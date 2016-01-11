@@ -348,6 +348,19 @@ app.post("/getRankingsForRegional", util.requireLogin, function(req, res){
 	});
 });
 
+app.post("/sendFeedback", function(req, res){
+	util.getTeamInfoForUser(req.session.user.teamCode, function(team){
+		if (team){
+			util.sendEmail("support@morscout.com", "Feedback from team " + team.teamNumber, req.body.content, function(didSend){
+				res.end(util.respond(didSend));
+			});
+		}
+		else {
+			res.end("fail");
+		}
+	});
+});
+
 app.post("/getSortedTeamAvgs", util.requireLogin, function(req, res){
 	util.getTeamInfoForUser(req.session.user.teamCode, function(team){
 		if (team){
