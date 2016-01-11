@@ -348,6 +348,23 @@ exports.getUser = function(id, cb) {//.populate maybe?
     })
 }
 
+exports.sortObject = function(obj) {//nm, greatest to least
+    var arr = [];
+    var prop;
+    for (prop in obj) {
+        if (obj.hasOwnProperty(prop)) {
+            arr.push({
+                'key': prop,
+                'value': obj[prop]
+            });
+        }
+    }
+    arr.sort(function(a, b) {
+        return b.value - a.value;
+    });
+    return arr;
+}
+
 exports.nameCase = function(str) {
     str = str.trim().toLowerCase();
     return str.charAt(0).toUpperCase() + str.substring(1);

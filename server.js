@@ -348,6 +348,56 @@ app.post("/getRankingsForRegional", util.requireLogin, function(req, res){
 	});
 });
 
+app.post("/getSortedTeamAvgs", util.requireLogin, function(req, res){
+	util.getTeamInfoForUser(req.session.user.teamCode, function(team){
+		if (team){
+			util.request("/event/" + team.currentRegional + "/teams", function(teams){
+				if (typeof(teams) == "object"){
+					var sortValid = true;
+					var sortBy = req.body.sortBy; //Goals, Blocks, etc.
+					var teamAvgs = {};
+					for (var i = 0; i < teams.length; i++){
+						if (sortValid){
+							var teamNumber = teams[i].team_number;
+							Report.find({
+								team: teamNumber,
+								scoutTeamCode: req.session.user.teamCode,
+								event: team.currentRegional
+							}, function(err, reports){
+								if (!err && typeof(reports[0].data[sortBy]) == "number"){//checks if that data point is number
+									var teamTotal = 0;
+									for (var j = 0; j < reports.length; j++){
+										teamTotal += reports[j].data[sortBy];
+									}
+									if (reports.length != 0) teamAvgs[teamNumber] = teamTotal/reports.length;
+									else teamAvgs[teamNumber] = 0;
+									if (Object.keys(teamAvgs).length == teams.length){
+										res.end(JSON.stringify(util.sortObject(teamAvgs)));
+									}
+								}
+								else {
+									sortValid = false;
+								}
+							}));
+						}
+						else {
+							res.end("cannot sort by non-numerical value, and/or error");
+							break;
+						}
+					}
+
+				}
+				else {
+					res.end("fail");
+				}
+			});
+		}
+		else {
+			res.end("fail");
+		}
+	});
+});
+
 app.post("/getScoutForm", util.requireLogin, function(req, res){//get?
     DataPoint.find({
         teamCode: req.session.user.teamCode
