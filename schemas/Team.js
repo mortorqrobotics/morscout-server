@@ -4,7 +4,7 @@ var Schema = mongoose.Schema;
 var teamSchema = new Schema({
     teamNumber: {type: Number, required: true},
     teamName: {type: String, required: true},
-    teamCode: {type: String, required: true},
+    teamCode: {type: String, required: true, unique: true},
     currentRegional: {type: String, required: false}
 });
 

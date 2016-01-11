@@ -72,40 +72,45 @@ exports.requireLogin = function(req, res, next) {
 exports.addDataPoints = function(dataPoints, teamCode, cb) {
     var done = 0;
     var allPointsValid = true;
-    for (var i = 0; i < dataPoints.length; i++) {
-        if (allPointsValid){
-            var dataPoint = dataPoints[i];
-            dataPoint.teamCode = teamCode;
-            var type = dataPoint.type;
-            if ((!~["checkbox", "radiobuttons", "dropdown", "text", "number"].indexOf(type)) ||
-                (~["radiobuttons", "dropdown"].indexOf(type) && !dataPoint.options) ||
-                (!~["radiobuttons", "dropdown"].indexOf(type) && dataPoint.options) ||
-                (type == "number" && !(typeof(dataPoint.min) == "number" && typeof(dataPoint.start) == "number")) ||
-                (type != "number" && (typeof(dataPoint.min) == "number" || typeof(dataPoint.max) == "number" || typeof(dataPoint.start) == "number")) ||
-                (dataPoint.context != "match" && dataPoint.context != "pit")) { //This was a switch-case but ben did not want that
-                clearDataPoints(teamCode, function() { //if one data point is corrupt the form is rejected and all points are cleared
-                    allPointsValid = false;
-                });
-            } else {
-                DataPoint.create(dataPoint, function(err) {
-                    if (!err) {
-                        done++;
-                        if (done == dataPoints.length) {
-                            cb(true);
-                        }
-                    } else {
+    clearDataPoints(teamCode, function() { //clear current data points
+        for (var i = 0; i < dataPoints.length; i++) {
+            if (allPointsValid){
+                var dataPoint = dataPoints[i];
+                dataPoint.teamCode = teamCode;
+                var type = dataPoint.type;
+                var allNames = [];
+                if ((!~["checkbox", "radiobuttons", "dropdown", "text", "number"].indexOf(type)) ||
+                    (~["radiobuttons", "dropdown"].indexOf(type) && !dataPoint.options) ||
+                    (!~["radiobuttons", "dropdown"].indexOf(type) && dataPoint.options) ||
+                    (type == "number" && !(typeof(dataPoint.min) == "number" && typeof(dataPoint.start) == "number")) ||
+                    (type != "number" && (typeof(dataPoint.min) == "number" || typeof(dataPoint.max) == "number" || typeof(dataPoint.start) == "number")) ||
+                    (dataPoint.context != "match" && dataPoint.context != "pit") ||
+                    (~allNames.indexOf(dataPoint.name))) { //This was a switch-case but ben did not want that //Names must be unique
                         clearDataPoints(teamCode, function() { //if one data point is corrupt the form is rejected and all points are cleared
                             allPointsValid = false;
                         });
-                    }
-                });
+                } else {
+                    allNames.push(dataPoint.name);
+                    DataPoint.create(dataPoint, function(err) {
+                        if (!err) {
+                            done++;
+                            if (done == dataPoints.length) {
+                                cb(true);
+                            }
+                        } else {
+                            clearDataPoints(teamCode, function() { //if one data point is corrupt the form is rejected and all points are cleared
+                                allPointsValid = false;
+                            });
+                        }
+                    });
+                }
+            }
+            else {
+                cb(false);
+                break;
             }
         }
-        else {
-            cb(false);
-            break;
-        }
-    }
+    });
 }
 
 exports.request = function request(path, cb) {//I will make this function better using express later
@@ -174,8 +179,8 @@ exports.validateReport = function(report, cb) {
             context: report.context,
             teamCode: report.scoutTeamCode,
             $where: function(dataPoint) {
-                var pointID = dataPoint._id;
-                var value = report.data[pointID];
+                var pointName = dataPoint.name;
+                var value = report.data[pointName];
                 if (typeof(value) == "undefined") return true;
                 var type = dataPoint.type;
                 if (type == "checkbox") {
