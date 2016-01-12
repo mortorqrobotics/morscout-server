@@ -411,6 +411,61 @@ app.post("/getSortedTeamAvgs", util.requireLogin, function(req, res){
 	});
 });
 
+app.post("/getTeamPrevEventStats", util.requireLogin, function(req, res){
+	util.request("/team/frc" + req.body.teamNumber + "/" + req.body.year + "/events", function(events){
+		var eventStats = {};
+		var eventDone = 0;
+		for (var i = 0; i < events.length; i++){
+			var eventKey = events[i].key;
+			util.request("/event/" + eventKey + "/stats", function(stats){
+				for (var stat in stats){
+					eventStats[eventKey][stat] = stats[stat][req.body.teamNumber];//this creates the objects needed right?
+				}
+				eventDone++;
+				if (eventDone == events.length){
+					res.end(JSON.stringify(eventStats));//The presence of updated stats is dependant upon bluealliance
+				}
+			});
+		}
+	});
+});
+
+app.post("/getTeamPrevEventAwards", util.requireLogin, function(req, res){
+	util.request("/team/frc" + req.body.teamNumber + "/" + req.body.year + "/events", function(events){
+		var eventAwards = {};
+		var eventDone = 0;
+		for (var i = 0; i < events.length; i++){
+			util.request("/team/frc" + req.body.teamNumber + "/event/" + events[i].key + "/awards", function(awards){
+				eventAwards[events[i].key] = awards;
+				eventDone++;
+				if (eventDone == events.length){
+					res.end(JSON.stringify(eventAwards));
+				}
+			});
+		}
+	});
+});
+
+app.post("/getTeamPrevEventRank", util.requireLogin, function(req, res){
+	util.request("/team/frc" + req.body.teamNumber + "/" + req.body.year + "/events", function(events){
+		var eventRanks = {};
+		var eventDone = 0;
+		for (var i = 0; i < events.length; i++){
+			util.request("/event/" + events[i].key + "/rankings", function(rankings){
+				for (var j = 0; j < rankings.length; j++){
+					if (rankings[j][1] == (req.body.teamNumber + "")){
+						eventRanks[events[i].key] = rankings[j][0];
+						eventDone++;
+						if (eventDone == events.length){
+							res.end(JSON.stringify(eventRanks))
+						}
+					}
+				}
+			});
+		}
+	});
+});
+
 app.post("/getScoutForm", util.requireLogin, function(req, res){//get?
     DataPoint.find({
         teamCode: req.session.user.teamCode
