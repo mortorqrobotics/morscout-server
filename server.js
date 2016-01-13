@@ -196,21 +196,35 @@ app.post("/getMatchesForCurrentRegional", util.requireLogin, function(req, res){
 });
 
 app.post("/submitReport", util.requireLogin, function(req, res){ //Check all middleware
-    var report = req.body; //req.body contains data, team, context, match(if needed), isPrivate, and images([Object]): NOT scouter info
-    report.scout = req.session.user._id;
-    if (!report.images || report.context == "match") report.images = [];
-    report.scoutTeamCode = req.session.user.teamCode;
-	util.getTeamInfoForUser(report.scout, function(team){
-		if (team.currentRegional){
-			report.event = team.currentRegional;
-			util.submitReport(report, function(didSubmit){
-		        res.end(util.respond(didSubmit));
-		    });
+    var report = req.body; //req.body contains data(array), team, context, match(if needed), isPrivate, and images([Object]): NOT scouter info
+	DataPoint.find({
+        teamCode: req.session.user.teamCode,
+		context: report.context
+    }).sort("pointNumber").exec(function(err, dataPoints){
+		var orderValid = true;
+        for (var i = 0; i < report.data.length; i++){
+			if (report.data[i].name != dataPoints[i].name){
+				orderValid = false;
+			}
 		}
-		else {
-			res.end("fail");
+		if (orderValid){
+			report.scout = req.session.user._id;
+		    if (!report.images || report.context == "match") report.images = [];
+		    report.scoutTeamCode = req.session.user.teamCode;
+			util.getTeamInfoForUser(report.scout, function(team){
+				if (team.currentRegional){
+					report.event = team.currentRegional;
+					util.submitReport(report, function(didSubmit){
+				        res.end(util.respond(didSubmit));
+				    });
+				}
+				else {
+					res.end("fail");
+				}
+			});
 		}
-	});
+    });
+
 });
 
 app.post("/getMatchReports", util.requireLogin, function(req, res){
@@ -297,12 +311,17 @@ app.post("/getTeamReports", util.requireLogin, function(req, res){
 });*/
 
 app.post("/setScoutForm", util.requireAdmin, function(req, res){//Set and edit scout form
-    var dataPoints = req.body;//[Object]
+    var dataPoints = req.body.allDataPoints;//Object
+	for (var i = 0; i < allDataPoints.length; i++){
+		allDataPoints[i].teamCode = req.session.user.teamCode;
+		allDataPoints[i].context = req.body.context;
+		allDataPoints[i].pointNumber = i;
+	}
     Report.count({
         teamCode: req.session.user.teamCode
     }, function(err, count){
         if (!err && count == 0){
-            util.addDataPoints(dataPoints, req.session.user.teamCode, function(formSet){//also removes previous data points
+            util.addDataPoints(allDataPoints, req.session.user.teamCode, function(formSet){//also removes previous data points
                 res.end(util.respond(formSet));
             });
         }
@@ -310,6 +329,7 @@ app.post("/setScoutForm", util.requireAdmin, function(req, res){//Set and edit s
             res.end("fail");
         }
     });
+
 });
 
 app.post("/getTeamListForRegional", util.requireLogin, function(req, res){
@@ -469,7 +489,7 @@ app.post("/getTeamPrevEventRank", util.requireLogin, function(req, res){
 app.post("/getScoutForm", util.requireLogin, function(req, res){//get?
     DataPoint.find({
         teamCode: req.session.user.teamCode
-    }, function(err, dataPoints){//Gets match and pit forms
+    }).sort("pointNumber").exec(function(err, dataPoints){//Gets match and pit forms
         if (!err) res.end(JSON.stringify(dataPoints));
         else res.end("fail");
     });

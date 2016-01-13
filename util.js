@@ -76,16 +76,16 @@ exports.addDataPoints = function(dataPoints, teamCode, cb) {
         for (var i = 0; i < dataPoints.length; i++) {
             if (allPointsValid){
                 var dataPoint = dataPoints[i];
-                dataPoint.teamCode = teamCode;
                 var type = dataPoint.type;
-                var allNames = [];
-                if ((!~["checkbox", "radiobuttons", "dropdown", "text", "number"].indexOf(type)) ||
+                var allNames = [];//name is unique
+                if ((!~["checkbox", "radiobuttons", "dropdown", "text", "number", "label"].indexOf(type)) ||
                     (~["radiobuttons", "dropdown"].indexOf(type) && !dataPoint.options) ||
                     (!~["radiobuttons", "dropdown"].indexOf(type) && dataPoint.options) ||
                     (type == "number" && !(typeof(dataPoint.min) == "number" && typeof(dataPoint.start) == "number")) ||
                     (type != "number" && (typeof(dataPoint.min) == "number" || typeof(dataPoint.max) == "number" || typeof(dataPoint.start) == "number")) ||
                     (dataPoint.context != "match" && dataPoint.context != "pit") ||
-                    (~allNames.indexOf(dataPoint.name))) { //This was a switch-case but ben did not want that //Names must be unique
+                    (~allNames.indexOf(dataPoint.name)) ||
+                    (type == "label" && (dataPoint.min || dataPoint.max || dataPoint.start || dataPoint.options))) { //This was a switch-case but ben did not want that //Names must be unique
                         clearDataPoints(teamCode, function() { //if one data point is corrupt the form is rejected and all points are cleared
                             allPointsValid = false;
                         });
@@ -205,8 +205,14 @@ exports.validateReport = function(report, cb) {
             teamCode: report.scoutTeamCode,
             $where: function(dataPoint) {
                 var pointName = dataPoint.name;
-                var value = report.data[pointName];
-                if (typeof(value) == "undefined") return true;
+                var value;//
+                for (var i = 0; i < report.data.length; i++){
+                    if (report.data[i].name == pointName){
+                        value = report.data[i].value;
+                        break;
+                    }
+                }
+                if (typeof(value) == "undefined" && type != "label") return true;//Client: if !value, it's a label
                 var type = dataPoint.type;
                 if (type == "checkbox") {
                     if (typeof(value) != "boolean") return true;
@@ -220,6 +226,8 @@ exports.validateReport = function(report, cb) {
                 } else if (type == "checkbox" || type == "radiobutton") {
                     if (typeof(value) != "string") return true;
                     if (dataPoint.options.indexOf(value) == -1) return true;
+                } else if (type == "label"){
+                    if (value) return true;
                 }
             }
         }, function(err, count) {

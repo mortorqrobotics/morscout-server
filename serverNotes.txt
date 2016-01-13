@@ -12,6 +12,7 @@ drop down/radio buttons		list of strings
 checkbox			boolean
 number				min, max, start
 text				string
+label               string
 
 
 
