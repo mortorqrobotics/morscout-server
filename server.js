@@ -311,8 +311,8 @@ app.post("/getTeamReports", util.requireLogin, function(req, res){
 });*/
 
 app.post("/setScoutForm", util.requireAdmin, function(req, res){//Set and edit scout form
-    var dataPoints = req.body.allDataPoints;//Object
-	for (var i = 0; i < allDataPoints.length; i++){
+    var dataPoints = req.body.dataPoints;//Object
+	for (var i = 0; i < dataPoints.length; i++){
 		allDataPoints[i].teamCode = req.session.user.teamCode;
 		allDataPoints[i].context = req.body.context;
 		allDataPoints[i].pointNumber = i;
