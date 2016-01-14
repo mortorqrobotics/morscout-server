@@ -1,6 +1,7 @@
 var mongoose = require("mongoose");
 var util = require("./util.js");
 var app = require("express")();
+var url = require("url");
 var session = require("express-session");
 var fs = require("fs");
 
@@ -14,15 +15,29 @@ mongoose.connect("mongodb://localhost:27017/morscout");
 
 var server = null;
 
-var server = app.listen(8080);
+server = app.listen(8080);
 
 if(!fs.existsSync("pitImages")) {
 	fs.mkdirSync("pitImages");
 }
 
-app.get("/", function(req, res){
-	res.sendFile(__dirname + "/test.html");
+
+//Keep morscout-web in same directory as morscout-server
+//Serves web files to browser
+app.use(function(req, res, next){
+	var dirs = __dirname.split("/");
+	dirs.pop();
+	__dirname = dirs.join("/") + "/morscout-web";
+	var path = url.parse(req.url).pathname;
+	if (~path.indexOf(".")){ //Path must have extension (.html, .css, etc.) to work
+		res.sendFile(__dirname + path);
+	}
+	else {
+		next();
+	}
 });
+//
+
 
 module.exports = {
 	start: function() {
@@ -411,7 +426,7 @@ app.post("/getSortedTeamAvgs", util.requireLogin, function(req, res){
 								else {
 									sortValid = false;
 								}
-							}));
+							});
 						}
 						else {
 							res.end("cannot sort by non-numerical value, and/or error");

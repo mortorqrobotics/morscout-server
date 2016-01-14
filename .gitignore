@@ -2,3 +2,4 @@ morscout.bat
 node.exe
 .DS_Store
 /node_modules/
+npm-debug.log
