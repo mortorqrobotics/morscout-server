@@ -1,9 +1,13 @@
 var mongoose = require("mongoose");
 var util = require("./util.js");
-var app = require("express")();
+var express = require("express");
+var app = express();
 var url = require("url");
 var session = require("express-session");
+//var cookieParser = require('cookie-parser')
 var fs = require("fs");
+var bodyParser = require("body-parser");
+
 
 var DataPoint = require("./schemas/DataPoint.js");
 var Team = require("./schemas/Team.js");
@@ -21,6 +25,16 @@ if(!fs.existsSync("pitImages")) {
 	fs.mkdirSync("pitImages");
 }
 
+//app.use(express.cookieParser());
+
+var sessionMiddleware = session({
+ 	secret: "temporary",
+  	saveUninitialized: false,
+  	resave: false,
+});
+
+app.use(sessionMiddleware);
+
 
 //Keep morscout-web in same directory as morscout-server
 //Serves web files to browser
@@ -29,8 +43,9 @@ app.use(function(req, res, next){
 	dirs.pop();
 	__dirname = dirs.join("/") + "/morscout-web";
 	var path = url.parse(req.url).pathname;
-	if (~path.indexOf(".")){ //Path must have extension (.html, .css, etc.) to work
-		res.sendFile(__dirname + path);
+	if (~path.indexOf(".") || path == "" || path == "/"){ //Path must have extension (.html, .css, etc.) to work
+		if (path == "" || path == "/") res.sendFile(__dirname + "/index.html");
+		else res.sendFile(__dirname + path);
 	}
 	else {
 		next();
@@ -53,28 +68,39 @@ module.exports = {
 	}
 };
 
+app.use(bodyParser.json());
+
+app.use(bodyParser.urlencoded({
+  	extended: true
+}));
 
 app.post("/registerTeam", function(req, res){//add on login too
-	Team.count({
-		teamCode: req.body.teamCode
-	}, util.handleError(res, function(count){
-		if (count == 0){
-			Team.create({
-				teamNumber: req.body.teamNumber,
-				teamName: req.body.teamName,
-				teamCode: req.body.teamCode
-			}, util.handleError(res, function(){
-				res.end("success");
-			}));
-		}
-		else {
-			res.end("teamCode taken");
-		}
-	}));
+	var teamNumber = parseInt(req.body.teamNumber);
+	if (util.isInt(req.body.teamNumber)){
+		Team.count({
+			teamCode: req.body.teamCode
+		}, util.handleError(res, function(count){
+			if (count == 0){
+				Team.create({
+					teamNumber: req.body.teamNumber,
+					teamName: req.body.teamName,
+					teamCode: req.body.teamCode
+				}, util.handleError(res, function(){
+					res.end("success");
+				}));
+			}
+			else {
+				res.end("Team code taken");
+			}
+		}));
+	}
+	else {
+		res.end("Error");
+	}
 });
 
 app.post("/signup", function(req, res) {
-	var firstName = util.nameCase(req.body.firstName);
+	var firstName = util.nameCase(req.body.firstName);//Add character restrictions!
 	var lastName = util.nameCase(req.body.lastName);
 	var teamCode = req.body.teamCode;
 	var password = req.body.password;
@@ -88,7 +114,7 @@ app.post("/signup", function(req, res) {
 			if (numberOfTeamsWithCode == 1){
 				User.count({
 					teamCode: teamCode
-				}, handleError(res, function(usersInTeam){
+				}, util.handleError(res, function(usersInTeam){
 					var username = firstName.charAt(0).toLowerCase() + lastName.toLowerCase();
 					var isAdmin = false;
 					if (usersInTeam == 0) isAdmin = true;
@@ -101,7 +127,7 @@ app.post("/signup", function(req, res) {
 						password: password,
 						admin: isAdmin
 					}, util.handleError(res, function() {
-						res.end(username);
+						res.json({username: username});//Don't send username by itself, what if your name is frank ail?
 					}));
 				}));
 			}
@@ -124,24 +150,21 @@ app.post("/login", function(req, res) {
                 }
                 else{
                     if(isMatch){
-						delete user.password;
-                        req.session.user = user;
-                        Team.find({
+                        Team.findOne({
                             teamCode: user.teamCode
-                        }, handleError(res, function(teamInfo){
-                            user.teamName = teamInfo.teamName;
-                            user.teamNumber = teamInfo.teamNumber;
-                            res.end(user);//user contains firstName, lastName, username, teamCode, teamName, teamNumber, and admin(boolean)
+                        }, util.handleError(res, function(teamInfo){
+							req.session.user = user;
+                            res.json({user: user, teamName: teamInfo.teamName, teamNumber: teamInfo.teamNumber});//user contains firstName, lastName, username, teamCode, teamName, teamNumber, and admin(boolean)
                         }));
                     }
                     else{
-                        res.end("incorrect_password");
+                        res.end("fail");
                     }
                 }
             });
         }
         else{
-            res.end("incorrect_username");
+            res.end("fail");
         }
     }));
 });

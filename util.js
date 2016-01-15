@@ -27,6 +27,10 @@ asyncFunc(args, util.handleError(res, function(result) {
 
 */
 
+exports.isInt = function (value) {
+    return !isNaN(value) && (function(x) { return (x | 0) === x; })(parseFloat(value))
+}
+
 exports.handleError = function(res, cb) {
     return function(err) {
         if (err) {
