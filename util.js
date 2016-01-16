@@ -66,10 +66,10 @@ exports.requireAdmin = function(req, res, next) {
 }
 
 exports.requireLogin = function(req, res, next) {
-        if (req.session.user) next();
-        else res.end("fail");
-    }
-    //^^^^^
+    if (req.session.user) next();
+    else res.end("fail");
+}
+//^^^^^
 
 
 //Useful functions that have NOT been tested

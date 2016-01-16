@@ -33,12 +33,20 @@ var sessionMiddleware = session({
   	resave: false,
 });
 
+String.prototype.contains = function(arg) {
+	 return this.indexOf(arg) > -1;
+};
+
+Array.prototype.contains = function(arg) {
+	return this.indexOf(arg) > -1;
+}
+
 app.use(sessionMiddleware);
 
 
 //Keep morscout-web in same directory as morscout-server
 //Serves web files to browser
-app.use(function(req, res, next){
+app.use(function(req, res, next){//Clean
 	var dirs = __dirname.split("/");
 	dirs.pop();
 	__dirname = dirs.join("/") + "/morscout-web";
@@ -51,6 +59,18 @@ app.use(function(req, res, next){
 		next();
 	}
 });
+
+// app.use(function(req, res, next){
+// 	if (["/login.html", "/signup.html", "/createteam.html"].contains(req.url) && req.session.user){
+// 		res.redirect("/");
+// 	}
+// 	else if (!["/login.html", "/signup.html", "/createteam.html"].contains(req.url) && !req.session.user){
+// 		res.redirect("/login.html");
+// 	}
+// 	else {
+// 		next();
+// 	}
+// });
 //
 
 
@@ -73,6 +93,21 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   	extended: true
 }));
+
+
+app.post("/validateUser", util.requireLogin, function(req, res){
+	if (req.session.user._id == req.body.userID) {
+		res.end("success");
+	}
+	else {
+		res.end("fail");
+	}
+});
+
+app.post("/logout", util.requireLogin, function(req, res){
+	req.session.destroy();
+	res.end("success");
+});
 
 app.post("/registerTeam", function(req, res){//add on login too
 	var teamNumber = parseInt(req.body.teamNumber);
