@@ -27,12 +27,6 @@ if(!fs.existsSync("pitImages")) {
 
 //app.use(express.cookieParser());
 
-var sessionMiddleware = session({
- 	secret: "temporary",
-  	saveUninitialized: false,
-  	resave: false,
-});
-
 String.prototype.contains = function(arg) {
 	 return this.indexOf(arg) > -1;
 };
@@ -41,37 +35,35 @@ Array.prototype.contains = function(arg) {
 	return this.indexOf(arg) > -1;
 }
 
-app.use(sessionMiddleware);
+app.use(session({
+ 	secret: "temporary",
+  	saveUninitialized: false,
+  	resave: false,
+	cookie: {maxAge: 365*24*60*60*1000}
+}));
 
 
 //Keep morscout-web in same directory as morscout-server
 //Serves web files to browser
-app.use(function(req, res, next){//Clean
-	var dirs = __dirname.split("/");
-	dirs.pop();
-	__dirname = dirs.join("/") + "/morscout-web";
-	var path = url.parse(req.url).pathname;
-	if (~path.indexOf(".") || path == "" || path == "/"){ //Path must have extension (.html, .css, etc.) to work
-		if (path == "" || path == "/") res.sendFile(__dirname + "/index.html");
-		else res.sendFile(__dirname + path);
+
+app.use(function(req, res, next){
+	if (req.url.contains(".html")){
+		if (!["/login.html", "/signup.html", "/createteam.html"].contains(req.url) && !req.session.user){
+			res.redirect("/login.html");
+		}
+		else if (req.session.user && ["/login.html", "/signup.html", "/createteam.html"].contains(req.url)){
+			res.redirect("/");
+		}
+		else {
+			next();
+		}
 	}
 	else {
 		next();
 	}
 });
 
-// app.use(function(req, res, next){
-// 	if (["/login.html", "/signup.html", "/createteam.html"].contains(req.url) && req.session.user){
-// 		res.redirect("/");
-// 	}
-// 	else if (!["/login.html", "/signup.html", "/createteam.html"].contains(req.url) && !req.session.user){
-// 		res.redirect("/login.html");
-// 	}
-// 	else {
-// 		next();
-// 	}
-// });
-//
+app.use(express.static(require("path").join(__dirname, "../morscout-web")));
 
 
 module.exports = {
@@ -95,14 +87,7 @@ app.use(bodyParser.urlencoded({
 }));
 
 
-app.post("/validateUser", util.requireLogin, function(req, res){
-	if (req.session.user._id == req.body.userID) {
-		res.end("success");
-	}
-	else {
-		res.end("fail");
-	}
-});
+
 
 app.post("/logout", util.requireLogin, function(req, res){
 	req.session.destroy();
@@ -189,17 +174,27 @@ app.post("/login", function(req, res) {
                             teamCode: user.teamCode
                         }, util.handleError(res, function(teamInfo){
 							req.session.user = user;
-                            res.json({user: user, teamName: teamInfo.teamName, teamNumber: teamInfo.teamNumber});//user contains firstName, lastName, username, teamCode, teamName, teamNumber, and admin(boolean)
+							var userObj = {
+								_id: user._id,
+								username: user.username,
+								firstName: user.firstName,
+								lastName: user.lastName,
+								admin: user.admin,//boolean
+								teamCode: user.teamCode,
+								teamNumber: teamInfo.teamNumber,
+								teamName: teamInfo.teamName
+							}
+                            res.json(userObj);
                         }));
                     }
                     else{
-                        res.end("fail");
+                        res.end("inc_password");
                     }
                 }
             });
         }
         else{
-            res.end("fail");
+            res.end("inc_username");
         }
     }));
 });

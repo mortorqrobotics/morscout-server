@@ -142,7 +142,7 @@ exports.sendEmail = function (to, subject, text, cb){//TEMPORARY, make this work
     });
 }
 
-exports.request = function request(path, cb) {//I will make this function better using express later
+exports.request = function(path, cb) {//I will make this function better using express later
     http.request({
         host : "www.thebluealliance.com",
         path : "/api/v2" + path,
