@@ -47,7 +47,8 @@ app.use(session({
 //Serves web files to browser
 
 app.use(function(req, res, next){
-	if (req.url.contains(".html")){
+	if (req.url == "" || req.url == "/") req.url = "/index.html";
+	if (req.url.contains(".html")){//allow css and js to pass
 		if (!["/login.html", "/signup.html", "/createteam.html"].contains(req.url) && !req.session.user){
 			res.redirect("/login.html");
 		}
@@ -87,7 +88,14 @@ app.use(bodyParser.urlencoded({
 }));
 
 
-
+app.post("/validateUser", util.requireLogin, function(req, res){
+ 	if (req.session.user._id == req.body.userID) {
+		res.end("success");
+ 	}
+ 	else {
+ 		res.end("fail");
+ 	}
+ });
 
 app.post("/logout", util.requireLogin, function(req, res){
 	req.session.destroy();
