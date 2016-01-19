@@ -3,6 +3,7 @@ var util = require("./util.js");
 var express = require("express");
 var app = express();
 var session = require("express-session");
+var MongoStore = require("connect-mongo/es5")(session);//es5 because some const error
 var fs = require("fs");
 var bodyParser = require("body-parser");
 
@@ -40,6 +41,7 @@ app.use(session({
  	secret: "temporary",
   	saveUninitialized: false,
   	resave: false,
+	store: new MongoStore({ mongooseConnection: mongoose.connection }),
 	cookie: {maxAge: 365*24*60*60*1000}
 }));
 
