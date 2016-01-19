@@ -142,6 +142,10 @@ exports.sendEmail = function (to, subject, text, cb){//TEMPORARY, make this work
     });
 }
 
+String.prototype.replaceAll = function(t, r) {
+    return this.split(t).join(r);
+};
+
 exports.request = function(path, cb) {//I will make this function better using express later
     http.request({
         host : "www.thebluealliance.com",
@@ -153,7 +157,7 @@ exports.request = function(path, cb) {//I will make this function better using e
             data += chunk;
         });
         res.on("end", function() {
-            cb(JSON.parse(data));
+            cb(JSON.parse(data.replace(/\'/g, '"')));
         });
     }).end();
 }

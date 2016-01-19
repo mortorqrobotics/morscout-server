@@ -2,13 +2,11 @@ var mongoose = require("mongoose");
 var util = require("./util.js");
 var express = require("express");
 var app = express();
-var url = require("url");
 var session = require("express-session");
-//var cookieParser = require('cookie-parser')
 var fs = require("fs");
 var bodyParser = require("body-parser");
 
-
+//schemas
 var DataPoint = require("./schemas/DataPoint.js");
 var Team = require("./schemas/Team.js");
 var Report = require("./schemas/Report.js");
@@ -17,15 +15,13 @@ var Assignment = require("./schemas/Assignment.js");
 
 mongoose.connect("mongodb://localhost:27017/morscout");
 
-var server = null;
 
-server = app.listen(8080);
+app.listen(8080);
 
+//TODO: FIX THIS MESS
 if(!fs.existsSync("pitImages")) {
 	fs.mkdirSync("pitImages");
 }
-
-//app.use(express.cookieParser());
 
 String.prototype.contains = function(arg) {
 	 return this.indexOf(arg) > -1;
@@ -34,6 +30,11 @@ String.prototype.contains = function(arg) {
 Array.prototype.contains = function(arg) {
 	return this.indexOf(arg) > -1;
 }
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+  	extended: true
+}));
 
 app.use(session({
  	secret: "temporary",
@@ -45,6 +46,24 @@ app.use(session({
 
 //Keep morscout-web in same directory as morscout-server
 //Serves web files to browser
+
+app.use(function(req, res, next) {
+	if (req.session && req.session.user) {
+    	User.findOne({
+      		username: req.session.user.username
+    	}, function(err, user) {
+      		if (user) {
+        		req.user = user;
+        		delete req.user.password;
+        		req.session.user = user;
+      		}
+      		next();
+    	});
+  	}
+	else {
+    	next();
+  	}
+});
 
 app.use(function(req, res, next){
 	if (req.url == "" || req.url == "/") req.url = "/index.html";
@@ -65,28 +84,6 @@ app.use(function(req, res, next){
 });
 
 app.use(express.static(require("path").join(__dirname, "../morscout-web")));
-
-
-module.exports = {
-	start: function() {
-		server = app.listen(8080);
-		if(!fs.existsSync("pitImages")) {
-			fs.mkdirSync("pitImages");
-		}
-	},
-	stop: function() {
-		if(server) {
-			server.close();
-		}
-	}
-};
-
-app.use(bodyParser.json());
-
-app.use(bodyParser.urlencoded({
-  	extended: true
-}));
-
 
 app.post("/validateUser", util.requireLogin, function(req, res){
  	if (req.session.user._id == req.body.userID) {
@@ -211,7 +208,7 @@ app.post("/getRegionalsForTeam", util.requireLogin, function(req, res) {
 	util.getTeamInfoForUser(req.session.user.teamCode, function(team){
 		if (team){
 			util.request("/team/frc" + team.teamNumber + "/" + req.body.year + "/events", function(events){
-				if (events) res.end(JSON.stringify(events));
+				if (events) res.json(events);
 				else res.end("fail")
 			});
 		}
@@ -254,6 +251,15 @@ app.post("/chooseCurrentRegional", util.requireAdmin, function(req, res) {
 		else {
 			res.end("fail");
 		}
+	});
+});
+
+app.post("/getCurrentRegionalInfo", util.requireLogin, function(req, res){
+	util.getTeamInfoForUser(req.session.user.teamCode, function(team){
+		var currentRegionalKey = team.currentRegional;
+		util.request("/event/" + currentRegionalKey, function(eventInfo){
+			res.json(eventInfo);
+		});
 	});
 });
 
