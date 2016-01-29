@@ -268,9 +268,13 @@ app.post("/getCurrentRegionalInfo", util.requireLogin, function(req, res){
 app.post("/getMatchesForCurrentRegional", util.requireLogin, function(req, res){
 	util.getTeamInfoForUser(req.session.user.teamCode, function(team){
 		if (team){
-			util.request("/team/frc" + team.teamNumber + "/event/" + team.currentRegional + "/matches", function(matches){
-				if (typeof(matches) == "object") res.end(JSON.stringify(matches));//array
-				else res.end("fail");
+			util.request("/event/" +  team.currentRegional + "/matches", function(matches){
+				if (typeof(matches) == "object") {
+					res.end(JSON.stringify(matches));//array
+				}
+				else {
+					res.end("fail");
+				}
 			});
 		}
 		else {
