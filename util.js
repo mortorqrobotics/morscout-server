@@ -210,6 +210,12 @@ exports.submitReport = function(report, cb) {
                     }
                 });
             }
+            if (images.length == 0){
+                report.imagePaths = [""];
+                Report.create(report, function(err, report) {
+                    cb(!err);
+                });
+            }
         } else {
             cb(false);
         }
@@ -221,12 +227,16 @@ exports.respond = function(success) {
     else return "fail";
 }
 
-exports.validateReport = function(report, cb) {
+function validateReport(report, cb) {
+    var context = report.context;
+    var isValid = true;
     if (context == "pit" || context == "match") {
-        DataPoint.count({
-            context: report.context,
-            teamCode: report.scoutTeamCode,
-            $where: function(dataPoint) {
+        DataPoint.find({
+            context: context,
+            teamCode: report.scoutTeamCode
+        }, function(err, dataPoints) {
+            for(var i = 0; i < dataPoints.length; i++) {
+                var dataPoint = dataPoints[i];
                 var pointName = dataPoint.name;
                 var value; //
                 for (var i = 0; i < report.data.length; i++) {
@@ -235,36 +245,33 @@ exports.validateReport = function(report, cb) {
                         break;
                     }
                 }
-                if (typeof(value) == "undefined" && type != "label") return true; //Client: if !value, it's a label
                 var type = dataPoint.type;
-                if (type == "checkbox") {
-                    if (typeof(value) != "boolean") return true;
-                } else if (type == "text") {
-                    if (typeof(value) != "string") return true;
-                } else if (type == "number") {
-                    if (typeof(value) != "number") return true;
-                    else if (value % 1 != 0) return true;
-                    else if (value < dataPoint.min) return true;
-                    else if (typeof(dataPoint.max) != "undefined" && value > dataPoint.max) return true;
-                } else if (type == "checkbox" || type == "radiobutton") {
-                    if (typeof(value) != "string") return true;
-                    if (dataPoint.options.indexOf(value) == -1) return true;
-                } else if (type == "label") {
-                    if (value) return true;
+                if((typeof(value) == "undefined" && type != "label") ||
+                    (type == "checkbox" && (value != "true" && value != "false")) ||
+                    (type == "text" && typeof(value) != "string") ||
+                    (type == "number" && typeof(parseInt(value)) != "number") ||
+                    (type == "number" && parseInt(value) % 1 != 0 && value < parseInt(dataPoint.min)) ||
+                    (type == "number" && (typeof(parseInt(value)) != "undefined" && value > parseInt(value))) ||
+                    ((type == "dropdown" || type == "radio") && ((typeof(value) != "string") || (dataPoint.options.indexOf(value) == -1))) ||
+                    (type == "label" && typeof(value) != "undefined")) {
+                        isValid = false;
+                        break;
                 }
             }
-        }, function(err, count) {
-            if (err || (report.context == "pit" && report.match) || (report.context == "match" && !report.match) /*||*/ ) {
+            if (isValid || (report.context == "pit" && report.match) || (report.context == "match" && !report.match) /*||*/ ) {
+                cb(true);
+            }
+            else {
                 cb(false);
-            } else {
-                cb(count == 0);
             }
         });
-    } else {
+    }
+    else {
         cb(false);
     }
-
 }
+
+//exports.validateReport = validateReport();
 
 exports.getTeammatesInfo = function(teamCode, cb) { //right now, team is same, later it won't be
     User.find({

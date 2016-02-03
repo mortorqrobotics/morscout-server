@@ -299,9 +299,10 @@ app.post("/submitReport", util.requireLogin, function(req, res){ //Check all mid
 			report.scout = req.session.user._id;
 		    if (!report.images || report.context == "match") report.images = [];
 		    report.scoutTeamCode = req.session.user.teamCode;
-			util.getTeamInfoForUser(report.scout, function(team){
+			util.getTeamInfoForUser(req.session.user.teamCode, function(team){
 				if (team.currentRegional){
 					report.event = team.currentRegional;
+					report.isPrivate = false; //team.showScoutingInfo;
 					util.submitReport(report, function(didSubmit){
 				        res.end(util.respond(didSubmit));
 				    });
@@ -310,6 +311,9 @@ app.post("/submitReport", util.requireLogin, function(req, res){ //Check all mid
 					res.end("fail");
 				}
 			});
+		}
+		else {
+			res.end("fail");
 		}
     });
 
