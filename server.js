@@ -330,7 +330,7 @@ app.post("/getMatchReports", util.requireLogin, function(req, res){
 				event: team.currentRegional,
 		        scoutTeamCode: req.session.user.teamCode
 		    }, util.handleError(res, function(yourReports){
-		        allReports.yourTeam = reports;
+		        allReports.yourTeam = yourReports;
 				Report.find({
 			        context: "match",
 			        match: req.body.match,
