@@ -410,7 +410,8 @@ app.post("/setScoutForm", util.requireAdmin, function(req, res){//Set and edit s
 		allDataPoints[i].pointNumber = i;
 	}
     Report.count({
-        teamCode: req.session.user.teamCode
+        scoutTeamCode: req.session.user.teamCode,
+		context: req.body.context
     }, function(err, count){
         if (!err && count == 0){
             util.addDataPoints(allDataPoints, req.session.user.teamCode, req.body.context, function(formSet){//also removes previous data points
