@@ -545,7 +545,8 @@ app.post("/getTeamPrevEventStats", util.requireLogin, function(req, res){
 
 app.post("/clearScoutingData", util.requireAdmin, function(req, res){
 	Report.remove({
-		scoutTeamCode: req.session.user.teamCode
+		scoutTeamCode: req.session.user.teamCode,
+		context: req.body.context
 	}, function(err){
 		res.end(util.respond(!err));
 	});
