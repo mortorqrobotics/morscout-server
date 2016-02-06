@@ -543,6 +543,25 @@ app.post("/getTeamPrevEventStats", util.requireLogin, function(req, res){
 	});
 });
 
+app.post("/clearScoutingData", util.requireAdmin, function(req, res){
+	Report.remove({
+		scoutTeamCode: req.session.user.teamCode
+	}, function(err){
+		res.end(util.respond(!err));
+	});
+});
+
+app.post("/setDataStatus", util.requireAdmin, function(req, res){
+	var isPrivate = (req.body.status == "private");
+	Report.update({
+		scoutTeamCode: req.session.user.teamCode
+	}, {
+		isPrivate: isPrivate
+	}, function(err){
+		res.end(util.respond(!err));
+	});
+});
+
 app.post("/getTeamPrevEventAwards", util.requireLogin, function(req, res){
 	util.request("/team/frc" + req.body.teamNumber + "/" + req.body.year + "/events", function(events){
 		var eventAwards = {};
