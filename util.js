@@ -299,17 +299,31 @@ exports.getUserStats = function(userID, cb) {
             }, function(err, pitsScouted) {
                 if (!err) {
                     stats.pitsScouted = pitsScouted;
+                    // Report.find({//no work?
+                    //     scout: userID//only at current regional?
+                    // }).distinct("team").count(function(err, count) { //Test, i have seen this work, however.
+                    //     if (!err) {
+                    //         stats.teamsScouted = count;
+                    //         cb(null, stats);
+                    //     } else {
+                    //         cb(err, null);
+                    //     }
+                    // });
                     Report.find({
                         scout: userID
-                    }).distinct("team").count(function(err, count) { //Test, i have seen this work, however.
+                    }, function(err, reports){
                         if (!err) {
-                            stats.teamsScouted = count;
+                            var allTeams = [];
+                            reports.forEach(function(report){
+                                if (allTeams.indexOf(report.team) < 0) allTeams.push(report.team);
+                            });
+                            stats.teamsScouted = allTeams.length;
                             cb(null, stats);
                         } else {
                             cb(err, null);
                         }
                     });
-                    cb(null, stats);
+                    //cb(null, stats);
                 } else {
                     cb(err, null);
                 }
