@@ -482,21 +482,32 @@ app.post("/getSortedTeamAvgs", util.requireLogin, function(req, res){
 					var sortValid = true;
 					var sortBy = req.body.sortBy; //Goals, Blocks, etc.
 					var teamAvgs = {};
-					for (var i = 0; i < teams.length; i++){
-						if (sortValid){
+					for (var i = 0; i < teams.length; i++) {
+						if (sortValid) (function() {
 							var teamNumber = teams[i].team_number;
 							Report.find({
 								team: teamNumber,
 								scoutTeamCode: req.session.user.teamCode,
 								event: team.currentRegional
 							}, function(err, reports){
-								if (!err && typeof(reports[0].data[sortBy]) == "number"){//checks if that data point is number
+								var val;
+								var valIndex;
+								if (reports.length != 0){
+									for (var k = 0; k < reports[0].data.length; k++){
+										if (reports[0].data[k].name == sortBy){
+											valIndex = k;
+											val = parseFloat(reports[0].data[k].value);
+										}
+									}
+								}
+								if (!err && (reports.length == 0 || typeof(val) == "number")){//checks if that data point is number
 									var teamTotal = 0;
 									for (var j = 0; j < reports.length; j++){
-										teamTotal += reports[j].data[sortBy];
+										teamTotal += parseFloat(reports[j].data[valIndex].value);
 									}
 									if (reports.length != 0) teamAvgs[teamNumber] = teamTotal/reports.length;
 									else teamAvgs[teamNumber] = 0;
+
 									if (Object.keys(teamAvgs).length == teams.length){
 										res.end(JSON.stringify(util.sortObject(teamAvgs)));
 									}
@@ -505,13 +516,12 @@ app.post("/getSortedTeamAvgs", util.requireLogin, function(req, res){
 									sortValid = false;
 								}
 							});
-						}
+						})();
 						else {
 							res.end("cannot sort by non-numerical value, and/or error");
 							break;
 						}
 					}
-
 				}
 				else {
 					res.end("fail");

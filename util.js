@@ -227,7 +227,7 @@ exports.respond = function(success) {
     else return "fail";
 }
 
-function validateReport(report, cb) {
+function validateReport(report, cb) {//CHECK for empty values and such
     var context = report.context;
     var isValid = true;
     if (context == "pit" || context == "match") {
