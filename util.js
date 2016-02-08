@@ -172,7 +172,7 @@ exports.request = function(path, cb) { //I will make this function better using 
             data += chunk;
         });
         res.on("end", function() {
-            cb(JSON.parse(data.replace(/\'/g, '"')));
+            cb(JSON.parse(data.split("'").join()));
         });
     }).end();
 }
