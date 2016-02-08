@@ -172,7 +172,8 @@ exports.request = function(path, cb) { //I will make this function better using 
             data += chunk;
         });
         res.on("end", function() {
-            cb(JSON.parse(data.split("'").join()));
+            if (data.substring(0, 10) == "{'Errors':") cb(JSON.parse(data.split("'").join('"')));
+            else cb(JSON.parse(data.split("'").join("")));
         });
     }).end();
 }
