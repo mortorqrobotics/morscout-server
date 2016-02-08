@@ -223,7 +223,8 @@ app.post("/getRegionalsForTeam", util.requireLogin, function(req, res) {
 app.post("/chooseCurrentRegional", util.requireAdmin, function(req, res) {
 	util.getTeamInfoForUser(req.session.user.teamCode, function(team){//FIX
 		if (team){
-			util.request("/team/frc" + team.teamNumber + "/" + req.body.year + "/events", function(events){
+			var year = req.body.eventCode.substring(0, 4);
+			util.request("/team/frc" + team.teamNumber + "/" + year + "/events", function(events){
 				if (typeof(events) == "object" && events.length > 0) {//array
 					for (var i = 0; i < events.length; i++){
 						var registeredForRegional = false;
@@ -413,7 +414,7 @@ app.post("/setScoutForm", util.requireAdmin, function(req, res){//Set and edit s
         scoutTeamCode: req.session.user.teamCode,
 		context: req.body.context
     }, function(err, count){
-        if (!err && count == 0){
+        if (!err){// && count == 0){
             util.addDataPoints(allDataPoints, req.session.user.teamCode, req.body.context, function(formSet){//also removes previous data points
                 res.end(util.respond(formSet));
             });
