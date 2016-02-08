@@ -77,6 +77,10 @@ exports.requireLogin = function(req, res, next) {
 function isNum(str) {
     return /^-?\d+$/.test(str);
 }
+//^v How to merge?
+exports.isNum = function(str){
+    return isNum(str);
+}
 
 
 //Useful functions that have NOT been tested

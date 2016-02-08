@@ -221,7 +221,7 @@ app.post("/getRegionalsForTeam", util.requireLogin, function(req, res) {
 });
 
 app.post("/chooseCurrentRegional", util.requireAdmin, function(req, res) {
-	util.getTeamInfoForUser(req.session.user.teamCode, function(team){
+	util.getTeamInfoForUser(req.session.user.teamCode, function(team){//FIX
 		if (team){
 			util.request("/team/frc" + team.teamNumber + "/" + req.body.year + "/events", function(events){
 				if (typeof(events) == "object" && events.length > 0) {//array
@@ -492,22 +492,30 @@ app.post("/getSortedTeamAvgs", util.requireLogin, function(req, res){
 							}, function(err, reports){
 								var val;
 								var valIndex;
+								var found = false;
+								var isNum = false;
 								if (reports.length != 0){
 									for (var k = 0; k < reports[0].data.length; k++){
 										if (reports[0].data[k].name == sortBy){
+											found = true;
 											valIndex = k;
 											val = parseFloat(reports[0].data[k].value);
+											isNum = util.isNum(val);
 										}
 									}
 								}
-								if (!err && (reports.length == 0 || typeof(val) == "number")){//checks if that data point is number
+								if (!found){
+									val = 0;
+								}
+								if (!err && (reports.length == 0 || (found && isNum) || !found)){//checks if that data point is number
 									var teamTotal = 0;
-									for (var j = 0; j < reports.length; j++){
-										teamTotal += parseFloat(reports[j].data[valIndex].value);
+									if (found){
+										for (var j = 0; j < reports.length; j++){
+											teamTotal += parseFloat(reports[j].data[valIndex].value);
+										}
 									}
 									if (reports.length != 0) teamAvgs[teamNumber] = teamTotal/reports.length;
 									else teamAvgs[teamNumber] = 0;
-
 									if (Object.keys(teamAvgs).length == teams.length){
 										res.end(JSON.stringify(util.sortObject(teamAvgs)));
 									}
