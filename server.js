@@ -3,7 +3,7 @@ var util = require("./util.js");
 var express = require("express");
 var app = express();
 var session = require("express-session");
-var MongoStore = require("connect-mongo/es5")(session);//es5 because some const error
+var MongoStore = require("connect-mongo")(session);//es5 because some const error
 var fs = require("fs");
 var bodyParser = require("body-parser");
 
@@ -577,10 +577,27 @@ app.post("/setDataStatus", util.requireAdmin, function(req, res){
 		scoutTeamCode: req.session.user.teamCode
 	}, {
 		isPrivate: isPrivate
+	}, {
+		multi: true
 	}, function(err){
 		res.end(util.respond(!err));
 	});
 });
+
+app.post("/getDataStatus", util.requireAdmin, function(req, res){
+	Report.find({scoutTeamCode: req.session.user.teamCode}, function(err, reports){
+		if(err){
+			console.error(err);
+			res.end("fail");
+		}else{
+			if(reports.length == 0) {
+				res.end("false");
+			}else{
+				res.end(reports[0].isPrivate.toString())
+			}
+		}
+	});
+})
 
 app.post("/getTeamPrevEventAwards", util.requireLogin, function(req, res){
 	util.request("/team/frc" + req.body.teamNumber + "/" + req.body.year + "/events", function(events){
