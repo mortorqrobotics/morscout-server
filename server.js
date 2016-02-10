@@ -3,7 +3,7 @@ var util = require("./util.js");
 var express = require("express");
 var app = express();
 var session = require("express-session");
-var MongoStore = require("connect-mongo/es5")(session);//es5 because some const error
+var MongoStore = require("connect-mongo")(session);//es5 because some const error
 var fs = require("fs");
 var bodyParser = require("body-parser");
 
@@ -222,9 +222,9 @@ app.post("/getRegionalsForTeam", util.requireLogin, function(req, res) {
 
 app.post("/chooseCurrentRegional", util.requireAdmin, function(req, res) {
 	util.getTeamInfoForUser(req.session.user.teamCode, function(team){//FIX
-		if (team){
+		if (team && typeof(req.body.eventCode) == "string"){
 			var year = req.body.eventCode.substring(0, 4);
-			util.request("/team/frc" + team.teamNumber + "/" + year + "/events", function(events){
+			util.reqssuest("/team/frc" + team.teamNumber + "/" + year + "/events", function(events){
 				if (typeof(events) == "object" && events.length > 0) {//array
 					for (var i = 0; i < events.length; i++){
 						var registeredForRegional = false;
