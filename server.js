@@ -320,6 +320,16 @@ app.post("/submitReport", util.requireLogin, function(req, res){ //Check all mid
 
 });
 
+app.post("/getMatchInfo", util.requireLogin, function(req, res){
+	util.getTeamInfoForUser(req.session.user.teamCode, function(team){
+		var currentRegional = team.currentRegional;
+		util.request("/match/" + currentRegional + "_qm" + req.body.match, function(matchInfo){
+			if (matchInfo) res.end(JSON.stringify(matchInfo));
+			else res.end("fail");
+		});
+	});
+});
+
 app.post("/getMatchReports", util.requireLogin, function(req, res){
 	util.getTeamInfoForUser(req.session.user.teamCode, function(team){
 		var allReports = {yourTeam:[], otherTeams:[]};
