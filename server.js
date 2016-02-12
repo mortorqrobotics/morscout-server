@@ -224,7 +224,7 @@ app.post("/chooseCurrentRegional", util.requireAdmin, function(req, res) {
 	util.getTeamInfoForUser(req.session.user.teamCode, function(team){//FIX
 		if (team && typeof(req.body.eventCode) == "string"){
 			var year = req.body.eventCode.substring(0, 4);
-			util.reqssuest("/team/frc" + team.teamNumber + "/" + year + "/events", function(events){
+			util.request("/team/frc" + team.teamNumber + "/" + year + "/events", function(events){
 				if (typeof(events) == "object" && events.length > 0) {//array
 					for (var i = 0; i < events.length; i++){
 						var registeredForRegional = false;
