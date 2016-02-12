@@ -271,7 +271,27 @@ app.post("/getMatchesForCurrentRegional", util.requireLogin, function(req, res){
 		if (team){
 			util.request("/event/" +  team.currentRegional + "/matches", function(matches){
 				if (typeof(matches) == "object") {
-					res.end(JSON.stringify(matches));//array
+					var done = 0;
+					for (var index = 0; index < matches.length; index++)(function(){
+						var i = index;
+						var matchNumber = matches[i].match_number;
+						Report.find({
+							scoutTeamCode: req.session.user.teamCode,
+							match: matchNumber,
+							event: team.currentRegional
+						}, function(err, reports){
+							var teamsReported = [];
+							reports.forEach(function(report){
+								var team = report.team;
+								if (teamsReported.indexOf(team) < 0) teamsReported.push(team);
+							});
+							done++;
+							matches[i].progress = teamsReported.length;
+							if (done == matches.length){
+								res.end(JSON.stringify(matches));//array
+							}
+						});
+					})();
 				}
 				else {
 					res.end("fail");
