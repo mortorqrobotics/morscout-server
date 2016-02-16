@@ -1,0 +1,32 @@
+{
+  "name": "MorScout",
+  "version": "2.0.0",
+  "description": "Scouting utility for robotics teams",
+  "main": "server.js",
+  "dependencies": {
+    "aws-sdk": "^2.2.10",
+    "bcrypt": "^0.8.5",
+    "body-parser": "^1.14.0",
+    "connect-mongo": "^0.8.2",
+    "ejs": "^2.3.4",
+    "express": "^4.13.3",
+    "express-session": "^1.11.3",
+    "lwip": "^0.0.8",
+    "mongoose": "^4.1.7",
+    "multer": "^1.0.6",
+    "nodemailer": "^1.5.0",
+    "socket.io": "^1.3.5",
+    "autolinker": "^0.22.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mortorqrobotics/morscout-server.git"
+  },
+  "keywords": [
+    "MorScout"
+  ],
+  "bugs": {
+    "url": "https://github.com/mortorqrobotics/morscout-server/issues"
+  },
+  "homepage": "https://github.com/mortorqrobotics/morscout-server"
+}
