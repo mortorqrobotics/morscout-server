@@ -176,7 +176,8 @@ exports.request = function(path, cb) { //I will make this function better using 
             data += chunk;
         });
         res.on("end", function() {
-            if (data.substring(0, 10) == "{'Errors':") cb(JSON.parse(data.split("'").join('"')));
+            //Added error handling
+            if (data.substring(0, 10) == "{'Errors':" || data.substring(0, 7) == '{"404":') cb(null, JSON.parse(data.split("'").join('"')));
             else cb(JSON.parse(data.split("'").join("")));
         });
     }).end();
