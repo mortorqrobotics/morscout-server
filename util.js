@@ -177,7 +177,7 @@ exports.request = function(path, cb) { //I will make this function better using 
         });
         res.on("end", function() {
             //Added error handling
-            if (data.substring(0, 10) == "{'Errors':" || data.substring(0, 7) == '{"404":') cb(null, JSON.parse(data.split("'").join('"')));
+            if (data.substring(0, 10) == "{'Errors':" || data.substring(0, 7) == '{"404":' || data.substring(0, 3) == "404") cb(null, "Error");
             else cb(JSON.parse(data.split("'").join("")));
         });
     }).end();
