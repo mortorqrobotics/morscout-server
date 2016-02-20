@@ -680,27 +680,98 @@ app.post("/getScoutForm", util.requireLogin, function(req, res) { //get?
 
 app.post("/assignTask", util.requireAdmin, function(req, res) {
     //req.body.scoutID is the _id of the user assigned the task
-    Assignment.create({
-        scout: req.body.scoutID,
-        teamCode: req.session.user.teamCode,
-        task: req.body.task,
-        assignedBy: req.session.user._id
-    }, util.handleError(res, function() {
-        res.end("success");
-    }));
+    util.getTeamInfoForUser(req.session.user.teamCode, function(team) {
+        var teamSection = parseInt(req.body.teamSection);
+        if (teamSection >= 1 && teamSection <= 3){
+            Assignment.create({
+                scout: req.body.scoutID,
+                startMatch: parseInt(req.body.startMatch),
+                endMatch: parseInt(req.body.endMatch),
+                alliance: req.body.alliance,
+                teamSection: teamSection
+            }, function(err) {
+                res.end(util.respond(!err));
+            });
+        }
+        else {
+            res.end("fail");
+        }
+    });
 });
 
 app.post("/showTasks", util.requireLogin, function(req, res) {
-    if (req.body.userID == req.session.user._id || req.session.user.admin) { //So you can only view you own tasks if you aren't an admin
-        Assignment.find({
-            scout: req.body.userID,
-            teamCode: req.session.user.teamCode //
-        }, util.handleError(res, function(assignments) {
-            res.end(JSON.stringify(assignments));
-        }));
-    } else {
-        res.end("fail");
-    }
+    util.getTeamInfoForUser(req.session.user.teamCode, function(team) {
+        if (team){
+            Report.find({
+                scout: req.body.scoutID,
+                event: team.currentRegional,
+                context: "match",
+            },"match team -_id", function(err, reports){
+                if (!err){
+                    util.request("/event/" + team.currentRegional + "/matches", function(matches) {
+                        Assignment.find({
+                            scout: req.body.userID,
+                        }, function(err, assignments){
+                            var allMatchesAssigned = [];
+                            for (var i = 0; i < assignments.length; i++){
+                                var startMatch = assignments[i].startMatch;
+                                var endMatch = assignments[i].endMatch;
+                                for (var j = startMatch; j <= endMatch; j++){
+                                    var teamSection = assignments[i].teamSection;
+                                    if (assignments[i].alliance == "blue"){
+                                        teamSection += 3;
+                                    }
+                                    var obj = {matchNumber: j, teamSection: teamSection};
+                                    allMatchesAssigned.push(obj);
+                                }
+                            }
+                            var allMatchesAssignedObj = [];
+                            for (var i = 0; i < allMatchesAssigned.length; i++){
+                                var match = {};
+                                for (var j = 0; j < matches.length; j++){
+                                    if (matches[j].match_number == allMatchesAssigned[i].matchNumber && matches[j].comp_level == "qm"){
+                                        var ba = matches[j].alliances.blue.teams;
+                                        var ra = matches[j].alliances.red.teams;
+                                        match.team = ra.concat(ba)[allMatchesAssigned[i].teamSection - 1];
+                                        match.matchNumber = allMatchesAssigned[i].matchNumber;
+                                    }
+                                }
+                                allMatchesAssignedObj.push(match);
+                            }
+                            var matchesNotDone = [];
+                            var matchesDone = [];
+                            for (var i = 0; i < allMatchesAssignedObj.length; i++){
+                                var assignmentDone = false;
+                                for (var j = 0; j < reports.length; j++){
+                                    if (allMatchesAssignedObj[i].matchNumber == reports[j].match && parseInt(allMatchesAssignedObj[i].team.substring(3)) == reports[j].team){
+                                        assignmentDone = true;
+                                        break;
+                                    }
+                                }
+                                if (!assignmentDone){
+                                    matchesNotDone.push(allMatchesAssignedObj[i].matchNumber);
+                                }
+                                else {
+                                    matchesDone.push(allMatchesAssignedObj[i].matchNumber);
+                                }
+                            }
+                            var data = {};
+                            data.matchesNotDone = matchesNotDone;
+                            data.assignments = assignments;
+                            data.matchesDone = matchesDone;
+                            res.end(JSON.stringify(data))
+                        });
+                    });
+                }
+                else {
+                    res.end("fail");
+                }
+            });
+        }
+        else {
+            res.end("fail");
+        }
+    });
 });
 
 app.post("/getTeammatesInfo", util.requireLogin, function(req, res) {
