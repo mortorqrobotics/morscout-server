@@ -8,6 +8,7 @@ var DataPoint = require("./schemas/DataPoint.js");
 var Report = require("./schemas/Report.js");
 var User = require("./schemas/User.js");
 var Assignment = require("./schemas/Assignment.js");
+var Strategy = require("./schemas/Strategy.js");
 
 
 /* usage:

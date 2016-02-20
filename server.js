@@ -13,6 +13,7 @@ var Team = require("./schemas/Team.js");
 var Report = require("./schemas/Report.js");
 var User = require("./schemas/User.js");
 var Assignment = require("./schemas/Assignment.js");
+var Strategy = require("./schemas/Strategy.js");
 
 mongoose.connect("mongodb://localhost:27017/morscout");
 
@@ -715,6 +716,43 @@ app.post("/getTeamInfo", util.requireLogin, function(req, res) {
         } else {
             res.end("fail");
         }
+    });
+});
+
+app.post("/setMatchStrategy", util.requireLogin, function(req, res){
+    util.getTeamInfoForUser(req.session.user.teamCode, function(team) {
+        Strategy.remove({
+            eventCode: team.currentRegional,
+            teamCode: req.session.user.teamCode,
+            matchNumber: parseInt(req.body.match)
+        }, function(err){
+            if (!err){
+                Strategy.create({
+                    eventCode: team.currentRegional,
+                    teamCode: req.session.user.teamCode,
+                    matchNumber: parseInt(req.body.match),
+                    strategy: req.body.strategy
+                }, function(err){
+                    res.end(util.respond(!err));
+                });
+            }
+            else {
+                res.end("fail");
+            }
+        });
+    });
+});
+
+app.post("/getMatchStrategy", util.requireLogin, function(req, res){
+    util.getTeamInfoForUser(req.session.user.teamCode, function(team) {
+        Strategy.findOne({
+            eventCode: team.currentRegional,
+            teamCode: req.session.user.teamCode,
+            matchNumber: parseInt(req.body.match)
+        }, function(err, strategy){
+            if (!err) res.end(JSON.stringify(strategy));
+            else res.end("fail");
+        });
     });
 });
 
