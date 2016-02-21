@@ -315,6 +315,9 @@ app.post("/submitReport", util.requireLogin, function(req, res) { //Check all mi
                 if (team.currentRegional) {
                     report.event = team.currentRegional;
                     report.isPrivate = false; //team.showScoutingInfo;
+                    for (var i = 0; i < report.data.length; i++) {
+                        if (typeof(report.data[i].value) == "string") report.data[i].value = util.sec(report.data[i].value);
+                    }
                     util.submitReport(report, function(didSubmit) {
                         res.end(util.respond(didSubmit));
                     });
@@ -832,7 +835,7 @@ app.post("/setMatchStrategy", util.requireLogin, function(req, res){
                     eventCode: team.currentRegional,
                     teamCode: req.session.user.teamCode,
                     matchNumber: parseInt(req.body.match),
-                    strategy: req.body.strategy
+                    strategy: util.sec(req.body.strategy)
                 }, function(err){
                     res.end(util.respond(!err));
                 });

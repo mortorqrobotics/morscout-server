@@ -29,6 +29,14 @@ asyncFunc(args, util.handleError(res, function(result) {
 
 */
 
+exports.sec = function(str){
+    return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+//Merge ^v
+function sec(str){
+    return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 exports.isInt = function(value) {
     return !isNaN(value) && (function(x) {
         return (x | 0) === x;
@@ -109,6 +117,7 @@ exports.addDataPoints = function(dataPoints, teamCode, context, cb) {
                     });
                 } else {
                     allNames.push(dataPoint.name);
+                    dataPoint.name = sec(dataPoint.name);//Protects HTML
                     DataPoint.create(dataPoint, function(err) {
                         if (!err) {
                             done++;
