@@ -4,10 +4,8 @@ var Schema = mongoose.Schema;
 //var User = require("./User.js");
 
 var assignmentSchema = new Schema({
-	// scout: {type: Schema.Types.ObjectId, ref: "User", required: true},
-	// teamCode: {type: String, required: true},
-	// task: {type: String, required: true},
-	// assignedBy: {type: Schema.Types.ObjectId, ref: "User", required: true}
+	// task: {type: String, requred: true},
+	assignedBy: {type: Schema.Types.ObjectId, ref: "User", required: true},
 	scout: {type: Schema.Types.ObjectId, ref: "User", required: true},
 	// teamCode: {type: String, required: true},
 	eventCode: {type: String, required: true},

@@ -682,15 +682,39 @@ app.post("/assignTask", util.requireAdmin, function(req, res) {
     //req.body.scoutID is the _id of the user assigned the task
     util.getTeamInfoForUser(req.session.user.teamCode, function(team) {
         var teamSection = parseInt(req.body.teamSection);
-        if (teamSection >= 1 && teamSection <= 3){
-            Assignment.create({
+        if (team && parseInt(req.body.startMatch) > 0 && parseInt(req.body.endMatch) > 0 && parseInt(req.body.startMatch) <= parseInt(req.body.endMatch) && teamSection >= 1 && teamSection <= 3 && (req.body.alliance == "blue" || req.body.alliance == "red")){
+            Assignment.find({
                 scout: req.body.scoutID,
-                startMatch: parseInt(req.body.startMatch),
-                endMatch: parseInt(req.body.endMatch),
-                alliance: req.body.alliance,
-                teamSection: teamSection
-            }, function(err) {
-                res.end(util.respond(!err));
+                eventCode: team.currentRegional
+            },"startMatch endMatch", function(err, assignments){
+                var allMatchesAssigned = [];
+                var isValid = true;
+                for (var i = 0; i < assignments.length; i++){
+                    var startMatch = assignments[i].startMatch;
+                    var endMatch = assignments[i].endMatch;
+                    var newStart = parseInt(req.body.startMatch);
+                    var newEnd = parseInt(req.body.endMatch);
+                    if (!((newStart < startMatch && newEnd < startMatch) || (newStart > endMatch && newEnd > endMatch))){//checks overlap
+                        isValid = false;
+                        break;
+                    }
+                }
+                if (isValid){
+                    Assignment.create({
+                        scout: req.body.scoutID,
+                        startMatch: parseInt(req.body.startMatch),
+                        endMatch: parseInt(req.body.endMatch),
+                        alliance: req.body.alliance,
+                        teamSection: teamSection,
+                        eventCode: team.currentRegional,
+                        assignedBy: req.session.user._id
+                    }, function(err) {
+                        res.end(util.respond(!err));
+                    });
+                }
+                else {
+                    res.end("fail");
+                }
             });
         }
         else {
@@ -710,7 +734,8 @@ app.post("/showTasks", util.requireLogin, function(req, res) {
                 if (!err){
                     util.request("/event/" + team.currentRegional + "/matches", function(matches) {
                         Assignment.find({
-                            scout: req.body.userID,
+                            scout: req.body.scoutID,
+                            eventCode: team.currentRegional
                         }, function(err, assignments){
                             var allMatchesAssigned = [];
                             for (var i = 0; i < assignments.length; i++){
@@ -756,9 +781,13 @@ app.post("/showTasks", util.requireLogin, function(req, res) {
                                 }
                             }
                             var data = {};
-                            data.matchesNotDone = matchesNotDone;
+                            data.matchesNotDone = matchesNotDone.sort(function(a, b) {
+                                return a - b;
+                            });
                             data.assignments = assignments;
-                            data.matchesDone = matchesDone;
+                            data.matchesDone = matchesDone.sort(function(a, b) {
+                                return a - b;
+                            });;
                             res.end(JSON.stringify(data))
                         });
                     });
