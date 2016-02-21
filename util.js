@@ -9,6 +9,7 @@ var Report = require("./schemas/Report.js");
 var User = require("./schemas/User.js");
 var Assignment = require("./schemas/Assignment.js");
 var Strategy = require("./schemas/Strategy.js");
+var Image = require("./schemas/Image.js");
 
 
 /* usage:
@@ -195,34 +196,34 @@ exports.randomStr = function(length) {
 
 
 exports.submitReport = function(report, cb) {
-    var images = report.images;
-    var imagePaths = [];
-    delete report.images; //so you dont pass all that data to validateReport
+    //var images = report.images;
+    //var imagePaths = [];
+    //delete report.images; //so you dont pass all that data to validateReport
     validateReport(report, function(isValid) {
         if (isValid) {
-            var done = 0;
-            for (var i = 0; i < images.length; i++) {
-                var image = images[i];
-                var imageExt = image.name.split(".")[image.name.split(".").length - 1];
-                var imageBuffer = image.buffer;
-                var newImageName = randomStr(32) + "." + imageExt;
-                fs.writeFile("pitImages/" + newImageName, imageBuffer, function(err) { //err right?, use later
-                    done++;
-                    imagePaths.push("pitImages/" + newImageName);
-                    if (done == images.length) {
-                        report.imagePaths = imagePaths;
+            // var done = 0;
+            // for (var i = 0; i < images.length; i++) {
+            //     var image = images[i];
+            //     var imageExt = image.name.split(".")[image.name.split(".").length - 1];
+            //     var imageBuffer = .buffer;
+            //     var newImageName = randomStr(32) + "." + imageExt;
+            //     fs.writeFile("pitImages/" + newImageName, imageBuffer, function(err) { //err right?, use later
+            //         done++;
+            //         imagePaths.push("pitImages/" + newImageName);
+            //         if (done == images.length) {
+            //             report.imagePaths = imagePaths;
                         Report.create(report, function(err) {
                             cb(!err);
                         });
-                    }
-                });
-            }
-            if (images.length == 0){
-                report.imagePaths = [""];
-                Report.create(report, function(err, report) {
-                    cb(!err);
-                });
-            }
+            //         }
+            //     });
+            // }
+            // if (images.length == 0){
+            //     report.imagePaths = [""];
+            //     Report.create(report, function(err, report) {
+            //         cb(!err);
+            //     });
+            // }
         } else {
             cb(false);
         }
@@ -356,23 +357,23 @@ exports.getTeamReports = function(scoutTeamCode, teamNumber, reportContext, cb) 
             }
         }, "data scout team match event imagePaths", function(err, otherTeamReports) {
             if (!err) {
-                addImagesToReports(otherTeamReports, function(newOtherTeamReports) {
-                    allReports.otherTeams = newOtherMatchReports;
+                //addImagesToReports(otherTeamReports, function(newOtherTeamReports) {
+                    allReports.otherTeams = otherMatchReports;
                     Report.find({
                         team: teamNumber,
                         context: reportContext,
                         scoutTeamCode: scoutTeamCode
                     }, "data scout team match event imagePaths", function(err, yourTeamReports) {
                         if (!err) {
-                            addImagesToReports(yourTeamReports, function(newYourTeamReports) {
-                                allReports.yourTeam = newYourTeamReports;
+                            //addImagesToReports(yourTeamReports, function(newYourTeamReports) {
+                                allReports.yourTeam = yourTeamReports;
                                 cb(allReports);
-                            });
+                            //});
                         } else {
                             cb(false);
                         }
                     });
-                });
+                //});
             } else {
                 cb(false);
             }
@@ -382,7 +383,7 @@ exports.getTeamReports = function(scoutTeamCode, teamNumber, reportContext, cb) 
     }
 }
 
-exports.addImagesToReports = function(reports, cb) {
+exports.addImagesToReports = function(reports, cb) {//don't use
     for (var i = 0; i < reports.length; i++) {
         var report = reports[i];
         var imageBuffers = [];

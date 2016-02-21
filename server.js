@@ -14,6 +14,7 @@ var Report = require("./schemas/Report.js");
 var User = require("./schemas/User.js");
 var Assignment = require("./schemas/Assignment.js");
 var Strategy = require("./schemas/Strategy.js");
+var Image = require("./schemas/Image.js");
 
 mongoose.connect("mongodb://localhost:27017/morscout");
 
@@ -308,7 +309,7 @@ app.post("/submitReport", util.requireLogin, function(req, res) { //Check all mi
         }
         if (orderValid) {
             report.scout = req.session.user._id;
-            if (!report.images || report.context == "match") report.images = [];
+            //if (!report.images || report.context == "match") report.images = [];
             report.scoutTeamCode = req.session.user.teamCode;
             util.getTeamInfoForUser(req.session.user.teamCode, function(team) {
                 if (team.currentRegional) {
@@ -853,6 +854,67 @@ app.post("/getMatchStrategy", util.requireLogin, function(req, res){
             if (!err) res.end(JSON.stringify(strategy));
             else res.end("fail");
         });
+    });
+});
+
+app.post("/addImage", util.requireLogin, function(req, res){
+    util.getTeamInfoForUser(req.session.user.teamCode, function(team) {
+        if (team){
+            var imagePath = util.randomStr(32) + image.name.split(".")[image.name.split(".").length - 1];
+            var imageBuffer = image.buffer;
+            Image.create({
+                imagePath: imagePath,
+                year: parseInt(team.currentRegional.substring(0, 4)),
+                scoutTeamCode: req.session.user.teamCode,
+                team: parseInt(req.body.team)
+            }, function(err){
+                if (!err){
+                    fs.writeFile("pitImages/" + imagePath, imageBuffer, function(err){
+                        if (!err){
+                            res.end("success");
+                        }
+                        else {
+                            res.end("fail");
+                        }
+                    })
+                }
+                else {
+                    res.end("fail");
+                }
+            });
+        }
+        else {
+            res.end("fail");
+        }
+    });
+});
+
+app.post("/getImages", util.requireLogin, function(req, res){
+    util.getTeamInfoForUser(req.session.user.teamCode, function(team) {
+        if (team){
+            var imageBuffers = [];
+            Image.find({
+                year: parseInt(team.currentRegional.substring(0, 4)),
+                scoutTeamCode: req.session.user.teamCode,
+                team: parseInt(req.body.team)
+            }, function(err, images){
+                var done = 0;
+                for (var i = 0; i < images.length; i++){
+                    var imagePath = images[i].imagePath;
+                    fs.readFile(imagePath, function(err, imageBuffer){
+                        imageBuffers.push(imageBuffer);
+                        done++;
+                        if (done == images.length){
+                            res.end(JSON.stringify(imageBuffers));
+                        }
+                    });
+
+                }
+            });
+        }
+        else {
+            res.end("fail");
+        }
     });
 });
 
