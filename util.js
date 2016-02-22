@@ -351,7 +351,7 @@ exports.getUserStats = function(userID, cb) {
     });
 }
 
-exports.getTeamReports = function(scoutTeamCode, teamNumber, reportContext, cb) {
+exports.getTeamReports = function(scoutTeamCode, teamNumber, reportContext, query, cb) {
     var allReports = {
         yourTeam: [],
         otherTeams: []
@@ -361,6 +361,7 @@ exports.getTeamReports = function(scoutTeamCode, teamNumber, reportContext, cb) 
             team: teamNumber,
             context: reportContext,
             isPrivate: false,
+            event: new RegExp("^" + query + "[a-zA-Z]+\\d*$", "i"),
             scoutTeamCode: {
                 $ne: scoutTeamCode
             }
@@ -371,6 +372,7 @@ exports.getTeamReports = function(scoutTeamCode, teamNumber, reportContext, cb) 
                     Report.find({
                         team: teamNumber,
                         context: reportContext,
+                        event: new RegExp("^" + query + "[a-zA-Z]+\\d*$", "i"),
                         scoutTeamCode: scoutTeamCode
                     }, "data scout team match event imagePaths", function(err, yourTeamReports) {
                         if (!err) {

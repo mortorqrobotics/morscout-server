@@ -378,12 +378,18 @@ app.post("/getMatchReports", util.requireLogin, function(req, res) {
 });
 
 app.post("/getTeamReports", util.requireLogin, function(req, res) {
-    util.getTeamReports(req.session.user.teamCode, req.body.teamNumber, req.body.reportContext, function(allReports) {
-        if (allReports) {
-            res.end(JSON.stringify(allReports));
-        } else {
-            res.end("fail");
+    util.getTeamInfoForUser(req.session.user.teamCode, function(team) {
+        var query = team.currentRegional;
+        if (req.body.reportContext == "pit"){
+            query = query.substring(0, 4);
         }
+        util.getTeamReports(req.session.user.teamCode, req.body.teamNumber, req.body.reportContext, query, function(allReports) {
+            if (allReports) {
+                res.end(JSON.stringify(allReports));
+            } else {
+                res.end("fail");
+            }
+        });
     });
 });
 
@@ -912,6 +918,41 @@ app.post("/getImages", util.requireLogin, function(req, res){
                         }
                     });
 
+                }
+            });
+        }
+        else {
+            res.end("fail");
+        }
+    });
+});
+
+app.post("/getPastRegionalResults", function(req, res){//try to fix speed
+    util.getTeamInfoForUser(req.session.user.teamCode, function(team) {
+        if (team){
+            util.request("/team/frc" + req.body.teamNumber + "/" + team.currentRegional.substring(0, 4) + "/events", function(events, err){
+                if (!err){
+                    var done = 0;
+                    var allAwards = {};
+                    for (var k = 0; k < events.length; k++)(function(){
+                        var event = events[k].key;
+                        util.request("/team/frc" + req.body.teamNumber + "/event/" + event + "/awards", function(awards){
+                            var eventAwards = [];
+                            if (awards){
+                                for (var i = 0; i < awards.length; i++){
+                                    eventAwards.push(awards[i].name);
+                                }
+                                allAwards[event] = eventAwards;
+                            }
+                            done++;
+                            if (done == events.length){
+                                res.end(JSON.stringify(allAwards))
+                            }
+                        });
+                    })();
+                }
+                else {
+                    res.end("fail");
                 }
             });
         }
