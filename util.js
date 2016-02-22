@@ -361,20 +361,20 @@ exports.getTeamReports = function(scoutTeamCode, teamNumber, reportContext, quer
             team: teamNumber,
             context: reportContext,
             isPrivate: false,
-            event: new RegExp("^" + query + "[a-zA-Z]+\\d*$", "i"),
+            event: query,
             scoutTeamCode: {
                 $ne: scoutTeamCode
             }
-        }, "data scout team match event imagePaths", function(err, otherTeamReports) {
+        }, "data scout team match event", function(err, otherTeamReports) {
             if (!err) {
                 //addImagesToReports(otherTeamReports, function(newOtherTeamReports) {
                     allReports.otherTeams = otherTeamReports;
                     Report.find({
                         team: teamNumber,
                         context: reportContext,
-                        event: new RegExp("^" + query + "[a-zA-Z]+\\d*$", "i"),
+                        event: query,
                         scoutTeamCode: scoutTeamCode
-                    }, "data scout team match event imagePaths", function(err, yourTeamReports) {
+                    }, "data scout team match event", function(err, yourTeamReports) {
                         if (!err) {
                             //addImagesToReports(yourTeamReports, function(newYourTeamReports) {
                                 allReports.yourTeam = yourTeamReports;

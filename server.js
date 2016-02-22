@@ -379,9 +379,11 @@ app.post("/getMatchReports", util.requireLogin, function(req, res) {
 
 app.post("/getTeamReports", util.requireLogin, function(req, res) {
     util.getTeamInfoForUser(req.session.user.teamCode, function(team) {
-        var query = team.currentRegional;
+        var regional = team.currentRegional;
+        var query = regional;
         if (req.body.reportContext == "pit"){
-            query = query.substring(0, 4);
+            var year = regional.substring(0, 4);
+            query = new RegExp("^" + year + "[a-zA-Z]+\\d*$", "i");
         }
         util.getTeamReports(req.session.user.teamCode, req.body.teamNumber, req.body.reportContext, query, function(allReports) {
             if (allReports) {
