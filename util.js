@@ -367,7 +367,7 @@ exports.getTeamReports = function(scoutTeamCode, teamNumber, reportContext, cb) 
         }, "data scout team match event imagePaths", function(err, otherTeamReports) {
             if (!err) {
                 //addImagesToReports(otherTeamReports, function(newOtherTeamReports) {
-                    allReports.otherTeams = otherMatchReports;
+                    allReports.otherTeams = otherTeamReports;
                     Report.find({
                         team: teamNumber,
                         context: reportContext,
