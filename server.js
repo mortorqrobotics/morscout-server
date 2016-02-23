@@ -523,12 +523,18 @@ app.post("/getSortedTeamAvgs", util.requireLogin, function(req, res) {
                                 var found = false;
                                 var isNum = false;
                                 if (reports.length != 0) {
-                                    for (var k = 0; k < reports[0].data.length; k++) {
-                                        if (reports[0].data[k].name == sortBy) {
-                                            found = true;
-                                            valIndex = k;
-                                            val = parseFloat(reports[0].data[k].value);
-                                            isNum = util.isNum(val);
+                                    for (var l = 0; l < reports.length; l++){
+                                        for (var k = 0; k < reports[l].data.length; k++) {
+                                            if (reports[l].data[k].name == sortBy) {
+                                                found = true;
+                                                valIndex = k;
+                                                val = parseFloat(reports[l].data[k].value);
+                                                isNum = util.isNum(val);
+                                                break;
+                                            }
+                                        }
+                                        if (found){
+                                            break;
                                         }
                                     }
                                 }
@@ -539,7 +545,7 @@ app.post("/getSortedTeamAvgs", util.requireLogin, function(req, res) {
                                     var teamTotal = 0;
                                     if (found) {
                                         for (var j = 0; j < reports.length; j++) {
-                                            teamTotal += parseFloat(reports[j].data[valIndex].value);
+                                            if (reports[j].data[valIndex]) teamTotal += parseFloat(reports[j].data[valIndex].value);//fix?
                                         }
                                     }
                                     if (reports.length != 0) teamAvgs[teamNumber] = teamTotal / reports.length;
