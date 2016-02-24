@@ -183,12 +183,17 @@ exports.request = function(path, cb) { //I will make this function better using 
         }
     }, function(res) {
         var data = "";
+        // var err = false;
         res.on("data", function(chunk) {
             data += chunk;
         });
+        // res.on("error", function(err){
+        //     err = true;
+        //     cb(null, "Error");
+        // });
         res.on("end", function() {
             //Added error handling
-            if (data.substring(0, 10) == "{'Errors':" || data.substring(0, 7) == '{"404":' || data.substring(0, 3) == "404") cb(null, "Error");
+            if (err || data.substring(0 , 1) == "<" || data.substring(0, 10) == "{'Errors':" || data.substring(0, 7) == '{"404":' || data.substring(0, 3) == "404") cb(null, "Error");
             else cb(JSON.parse(data.split("'").join("")));
         });
     }).end();

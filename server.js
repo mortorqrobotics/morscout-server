@@ -296,7 +296,7 @@ app.post("/getMatchesForCurrentRegional", util.requireLogin, function(req, res) 
 });
 
 app.post("/submitReport", util.requireLogin, function(req, res) { //Check all middleware
-    var report = req.body; //req.body contains data(array), team, context, match(if needed), isPrivate, and images([Object]): NOT scouter info
+    var report = JSON.parse(JSON.stringify(req.body)); //req.body contains data(array), team, context, match(if needed), isPrivate, and images([Object]): NOT scouter info
     DataPoint.find({
         teamCode: req.session.user.teamCode,
         context: report.context
