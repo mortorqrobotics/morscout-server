@@ -297,7 +297,7 @@ app.post("/getMatchesForCurrentRegional", util.requireLogin, function(req, res) 
 
 app.post("/submitReport", util.requireLogin, function(req, res) { //Check all middleware
     var report = JSON.parse(JSON.stringify(req.body)); //req.body contains data(array), team, context, match(if needed), isPrivate, and images([Object]): NOT scouter info
-    if(typeof report.data == "string") {
+    if(typeof(report.data) == "string") {
         report.data = JSON.parse(report.data);
     }
     DataPoint.find({
@@ -305,10 +305,15 @@ app.post("/submitReport", util.requireLogin, function(req, res) { //Check all mi
         context: report.context
     }).sort("pointNumber").exec(function(err, dataPoints) {
         var orderValid = true;
-        for (var i = 0; i < report.data.length; i++) {
-            if (report.data[i].name != dataPoints[i].name) {
-                orderValid = false;
+        if (report.data){
+            for (var i = 0; i < report.data.length; i++) {
+                if (!(report.data[i].name && dataPoints[i].name)||(report.data[i].name != dataPoints[i].name)) {
+                    orderValid = false;
+                }
             }
+        }
+        else {
+            orderValid = false;
         }
         if (orderValid) {
             report.scout = req.session.user._id;
@@ -317,12 +322,26 @@ app.post("/submitReport", util.requireLogin, function(req, res) { //Check all mi
             util.getTeamInfoForUser(req.session.user.teamCode, function(team) {
                 if (team.currentRegional) {
                     report.event = team.currentRegional;
-                    report.isPrivate = false; //team.showScoutingInfo;
-                    for (var i = 0; i < report.data.length; i++) {
-                        if (typeof(report.data[i].value) == "string") report.data[i].value = util.sec(report.data[i].value);
-                    }
-                    util.submitReport(report, function(didSubmit) {
-                        res.end(util.respond(didSubmit));
+                    //report.isPrivate = false; //team.showScoutingInfo;
+                    Report.find({
+                        scoutTeamCode: req.session.user.teamCode
+                    }, function(err, reports) {
+                        if (err) {
+                            res.end("fail");
+                        } else {
+                            if (reports.length == 0) {
+                                report.isPrivate = false;
+                            }
+                            else {
+                                report.isPrivate = (reports[0].isPrivate.toString() == "true");
+                            }
+                            for (var i = 0; i < report.data.length; i++) {
+                                if (typeof(report.data[i].value) == "string") report.data[i].value = util.sec(report.data[i].value);
+                            }
+                            util.submitReport(report, function(didSubmit) {
+                                res.end(util.respond(didSubmit));
+                            });
+                        }
                     });
                 } else {
                     res.end("fail");
