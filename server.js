@@ -263,7 +263,7 @@ app.post("/getMatchesForCurrentRegional", util.requireLogin, function(req, res) 
     util.getTeamInfoForUser(req.session.user.teamCode, function(team) {
         if (team) {
             util.request("/event/" + team.currentRegional + "/matches", function(matches) {
-                if (typeof(matches) == "object") {
+                if (matches !== null && typeof(matches) == "object") {
                     var done = 0;
                     for (var index = 0; index < matches.length; index++)(function() {
                         var i = index;
