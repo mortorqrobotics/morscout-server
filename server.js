@@ -320,7 +320,7 @@ app.post("/submitReport", util.requireLogin, function(req, res) { //Check all mi
             //if (!report.images || report.context == "match") report.images = [];
             report.scoutTeamCode = req.session.user.teamCode;
             util.getTeamInfoForUser(req.session.user.teamCode, function(team) {
-                if (team.currentRegional) {
+                if (team.currentRegional && (req.body.regional == team.currentRegional)) {
                     report.event = team.currentRegional;
                     //report.isPrivate = false; //team.showScoutingInfo;
                     Report.find({
@@ -363,6 +363,28 @@ app.post("/getMatchInfo", util.requireLogin, function(req, res) {
         });
     });
 });
+
+app.post("/getAllReports", util.requireLogin, function(req, res){
+    util.getTeamInfoForUser(req.session.user.teamCode, function(team) {
+        if (team){
+            Report.find({
+                scoutTeamCode: req.session.user.teamCode,
+                event: team.currentRegional
+            }, function(err, reports){
+                if (!err){
+                    res.end(JSON.stringify(reports));
+                }
+                else {
+                    res.end("fail");
+                }
+            });
+        }
+        else {
+            res.end("fail");
+        }
+    });
+});
+
 
 app.post("/getMatchReports", util.requireLogin, function(req, res) {
     util.getTeamInfoForUser(req.session.user.teamCode, function(team) {
@@ -891,6 +913,18 @@ app.post("/getMatchStrategy", util.requireLogin, function(req, res){
             matchNumber: parseInt(req.body.match)
         }, function(err, strategy){
             if (!err) res.end(JSON.stringify(strategy));
+            else res.end("fail");
+        });
+    });
+});
+
+app.post("/getAllMatchStrategies", util.requireLogin, function(req, res){
+    util.getTeamInfoForUser(req.session.user.teamCode, function(team) {
+        Strategy.find({
+            eventCode: team.currentRegional,
+            teamCode: req.session.user.teamCode,
+        }, function(err, strategies){
+            if (!err) res.end(JSON.stringify(strategies));
             else res.end("fail");
         });
     });
