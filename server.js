@@ -18,9 +18,6 @@ var Image = require("./schemas/Image.js");
 
 mongoose.connect("mongodb://localhost:27017/morscout");
 
-
-app.listen(8080);
-
 //TODO: FIX THIS MESS
 if (!fs.existsSync("pitImages")) {
     fs.mkdirSync("pitImages");
@@ -33,44 +30,6 @@ String.prototype.contains = function(arg) {
 Array.prototype.contains = function(arg) {
     return this.indexOf(arg) > -1;
 }
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-    extended: true
-}));
-
-app.use(session({
-    secret: "temporary",
-    saveUninitialized: false,
-    resave: false,
-    store: new MongoStore({
-        mongooseConnection: mongoose.connection
-    }),
-    cookie: {
-        maxAge: 365 * 24 * 60 * 60 * 1000
-    }
-}));
-
-
-//Keep morscout-web in same directory as morscout-server
-//Serves web files to browser
-
-app.use(function(req, res, next) {
-    if (req.session && req.session.user) {
-        User.findOne({
-            username: req.session.user.username
-        }, function(err, user) {
-            if (user) {
-                req.user = user;
-                delete req.user.password;
-                req.session.user = user;
-            }
-            next();
-        });
-    } else {
-        next();
-    }
-});
 
 app.use(function(req, res, next) {
     if (req.url == "" || req.url == "/") req.url = "/index.html";
@@ -100,107 +59,6 @@ app.post("/validateUser", util.requireLogin, function(req, res) {
 app.post("/logout", util.requireLogin, function(req, res) {
     req.session.destroy();
     res.end("success");
-});
-
-app.post("/registerTeam", function(req, res) { //add on login too
-    var teamNumber = parseInt(req.body.teamNumber);
-    if (util.isInt(req.body.teamNumber)) {
-        Team.count({
-            teamCode: req.body.teamCode
-        }, util.handleError(res, function(count) {
-            if (count == 0) {
-                Team.create({
-                    teamNumber: req.body.teamNumber,
-                    teamName: req.body.teamName,
-                    teamCode: req.body.teamCode
-                }, util.handleError(res, function() {
-                    res.end("success");
-                }));
-            } else {
-                res.end("Team code taken");
-            }
-        }));
-    } else {
-        res.end("Error");
-    }
-});
-
-app.post("/signup", function(req, res) {
-    var firstName = util.nameCase(req.body.firstName); //Add character restrictions!
-    var lastName = util.nameCase(req.body.lastName);
-    var teamCode = req.body.teamCode;
-    var password = req.body.password;
-    User.count({
-        firstName: new RegExp("^" + firstName.charAt(0)),
-        lastName: lastName
-    }, util.handleError(res, function(countNames) {
-        Team.count({
-            teamCode: teamCode
-        }, util.handleError(res, function(numberOfTeamsWithCode) {
-            if (numberOfTeamsWithCode == 1) {
-                User.count({
-                    teamCode: teamCode
-                }, util.handleError(res, function(usersInTeam) {
-                    var username = firstName.charAt(0).toLowerCase() + lastName.toLowerCase();
-                    var isAdmin = false;
-                    if (usersInTeam == 0) isAdmin = true;
-                    if (countNames > 0) username += countNames + 1;
-                    User.create({
-                        firstName: firstName,
-                        lastName: lastName,
-                        username: username,
-                        teamCode: teamCode,
-                        password: password,
-                        admin: isAdmin
-                    }, util.handleError(res, function() {
-                        res.json({
-                            username: username
-                        }); //Don't send username by itself, what if your name is frank ail?
-                    }));
-                }));
-            } else {
-                res.end("team does not exist");
-            }
-        }));
-    }));
-});
-
-app.post("/login", function(req, res) {
-    User.findOne({
-        username: req.body.username,
-    }, util.handleError(res, function(user) {
-        if (user) {
-            user.comparePassword(req.body.password, function(err, isMatch) {
-                if (err) {
-                    console.error(err);
-                    res.end("fail");
-                } else {
-                    if (isMatch) {
-                        Team.findOne({
-                            teamCode: user.teamCode
-                        }, util.handleError(res, function(teamInfo) {
-                            req.session.user = user;
-                            var userObj = {
-                                _id: user._id,
-                                username: user.username,
-                                firstName: user.firstName,
-                                lastName: user.lastName,
-                                admin: user.admin, //boolean
-                                teamCode: user.teamCode,
-                                teamNumber: teamInfo.teamNumber,
-                                teamName: teamInfo.teamName
-                            }
-                            res.json(userObj);
-                        }));
-                    } else {
-                        res.end("inc_password");
-                    }
-                }
-            });
-        } else {
-            res.end("inc_username");
-        }
-    }));
 });
 
 app.post("/getRegionalsForTeam", util.requireLogin, function(req, res) {
@@ -411,9 +269,6 @@ app.post("/getTeamReports", util.requireLogin, function(req, res) {
             if (allReports) {
                 res.end(JSON.stringify(allReports));
             } else {
-                res.end("fail");
-            }
-        });
     });
 });
 
@@ -936,7 +791,9 @@ app.post("/getImages", util.requireLogin, function(req, res){
                 year: parseInt(team.currentRegional.substring(0, 4)),
                 scoutTeamCode: req.session.user.teamCode,
                 team: parseInt(req.body.team)
-            }, function(err, images){
+            }, function(err, images){d({
+		        context: "pit",
+		        team:
                 var done = 0;
                 for (var i = 0; i < images.length; i++){
                     var imagePath = images[i].imagePath;
@@ -1001,3 +858,5 @@ app.post("/getUserStats", util.requireLogin, function(req, res) { //add for whol
         }
     });
 });
+
+// TODO; add 404
