@@ -16,6 +16,7 @@ var reportSchema = new Schema({
 });
 
 
-var Report = mongoose.model("Report", reportSchema);
-
-module.exports = Report;
+module.exports = function(db) {
+	var Report = db.model('Report', reportSchema);
+	return Report;
+};

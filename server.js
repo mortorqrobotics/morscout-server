@@ -1,3 +1,5 @@
+module.exports = function(app, networkSchemas){
+
 var mongoose = require("mongoose");
 var util = require("./util.js");
 var express = require("express");
@@ -7,16 +9,23 @@ var MongoStore = require("connect-mongo")(session); //es5 because some const err
 var fs = require("fs");
 var bodyParser = require("body-parser");
 
-//schemas
-var DataPoint = require("./schemas/DataPoint.js");
-var Team = require("./schemas/Team.js");
-var Report = require("./schemas/Report.js");
-var User = require("./schemas/User.js");
-var Assignment = require("./schemas/Assignment.js");
-var Strategy = require("./schemas/Strategy.js");
-var Image = require("./schemas/Image.js");
+var db = mongoose.createConnection('mongodb://localhost:27017/morscout');
 
-mongoose.connect("mongodb://localhost:27017/morscout");
+var schemas = {
+  Assignment: require('./schemas/Assignment.js')(db),
+  DataPoint: require('./schemas/DataPoint.js')(db),
+  Image: require('./schemas/Image.js')(db),
+  Report: require('./schemas/Report.js')(db),
+  Strategy: require('./schemas/Strategy.js')(db)
+};
+
+for(var key in networkSchemas) {
+	schemas[key] = networkSchemas[key];
+}
+
+for(key in schemas){
+  eval("var " + key + " = schemas." + key + ";");
+}
 
 //TODO: FIX THIS MESS
 if (!fs.existsSync("pitImages")) {
@@ -860,3 +869,5 @@ app.post("/getUserStats", util.requireLogin, function(req, res) { //add for whol
 });
 
 // TODO; add 404
+
+}

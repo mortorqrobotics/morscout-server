@@ -15,6 +15,7 @@ var assignmentSchema = new Schema({
 	teamSection: {type: Number, required: true}
 });
 
-var Assignment = mongoose.model("Assignment", assignmentSchema);
-
-module.exports = Assignment;
+module.exports = function(db) {
+	var Assignment = db.model('Assignment', assignmentSchema);
+	return Assignment;
+};

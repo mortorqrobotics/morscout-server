@@ -8,6 +8,7 @@ var imageSchema = new Schema({
     year: {type: Number, required: true}
 });
 
-var Image = mongoose.model("Image", imageSchema);
-
-module.exports = Image;
+module.exports = function(db) {
+	var Image = db.model('Image', imageSchema);
+	return Image;
+};

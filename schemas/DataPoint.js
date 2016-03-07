@@ -13,6 +13,7 @@ var dataPointSchema = new Schema({
 	options: {type: [String], required: false} //prov
 });
 
-var DataPoint = mongoose.model("DataPoint", dataPointSchema);
-
-module.exports = DataPoint;
+module.exports = function(db) {
+	var DataPoint = db.model('DataPoint', dataPointSchema);
+	return DataPoint;
+};
