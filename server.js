@@ -278,6 +278,8 @@ app.post("/getTeamReports", util.requireLogin, function(req, res) {
             if (allReports) {
                 res.end(JSON.stringify(allReports));
             } else {
+                res.end("fail");
+            }
     });
 });
 
