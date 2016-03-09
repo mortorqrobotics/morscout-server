@@ -296,7 +296,7 @@ function validateReport(report, cb) {//CHECK for empty values and such
 
 exports.getTeammatesInfo = function(teamCode, cb) { //right now, team is same, later it won't be
     User.find({
-        teamCode: teamCode
+        current_team: {id: teamCode}
     }, "_id firstName lastName teamCode username admin", function(err, users) {
         if (!err) {
             cb(null, users);
@@ -431,7 +431,7 @@ exports.addImagesToReports = function(reports, cb) {//don't use
 
 exports.getTeamInfoForUser = function(teamCode, cb) {
     Team.findOne({
-        teamCode: teamCode
+        id: teamCode
     }, function(err, team) {
         cb(team);
     });
