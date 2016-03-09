@@ -10,6 +10,6 @@ var strategySchema = new Schema({
 
 
 module.exports = function(db) {
-	var Strategy = db.model('Strategy', StrategySchema);
+	var Strategy = db.model('Strategy', strategySchema);
 	return Strategy;
 };
