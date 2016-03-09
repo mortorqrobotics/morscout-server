@@ -1,5 +1,4 @@
 var mongoose = require("mongoose");
-var session = require("express-session"); //needed?
 var fs = require("fs");
 var http = require("http");
 

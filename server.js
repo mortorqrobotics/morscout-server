@@ -1,15 +1,10 @@
-module.exports = function(app, networkSchemas){
+module.exports = function(app, networkSchemas, db){
 
 var mongoose = require("mongoose");
 var util = require("./util.js");
-var express = require("express");
-var app = express();
-var session = require("express-session");
-var MongoStore = require("connect-mongo")(session); //es5 because some const error
 var fs = require("fs");
-var bodyParser = require("body-parser");
 
-var db = mongoose.createConnection('mongodb://localhost:27017/morscout');
+// var db = mongoose.createConnection('mongodb://localhost:27017/morscout');
 
 var schemas = {
   Assignment: require('./schemas/Assignment.js')(db),
@@ -27,6 +22,7 @@ for(key in schemas){
   eval("var " + key + " = schemas." + key + ";");
 }
 
+// what is wrong with this v
 //TODO: FIX THIS MESS
 if (!fs.existsSync("pitImages")) {
     fs.mkdirSync("pitImages");
