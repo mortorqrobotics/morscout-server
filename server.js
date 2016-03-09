@@ -1,7 +1,7 @@
 module.exports = function(app, networkSchemas, db){
 
 var mongoose = require("mongoose");
-var util = require("./util.js");
+var util = require("./util.js")(db);
 var fs = require("fs");
 
 // var db = mongoose.createConnection('mongodb://localhost:27017/morscout');

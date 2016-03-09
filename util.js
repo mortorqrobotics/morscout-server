@@ -1,14 +1,17 @@
+module.exports = function(db) {
+var exports = {};
+
 var mongoose = require("mongoose");
 var fs = require("fs");
 var http = require("http");
 
-var Team = require("./schemas/Team.js");
-var DataPoint = require("./schemas/DataPoint.js");
-var Report = require("./schemas/Report.js");
-var User = require("./schemas/User.js");
-var Assignment = require("./schemas/Assignment.js");
-var Strategy = require("./schemas/Strategy.js");
-var Image = require("./schemas/Image.js");
+var Team = require("./schemas/Team.js")(db);
+var DataPoint = require("./schemas/DataPoint.js")(db);
+var Report = require("./schemas/Report.js")(db);
+var User = require("./schemas/User.js")(db);
+var Assignment = require("./schemas/Assignment.js")(db);
+var Strategy = require("./schemas/Strategy.js")(db);
+var Image = require("./schemas/Image.js")(db);
 
 
 /* usage:
@@ -470,3 +473,7 @@ exports.nameCase = function(str) {
     str = str.trim().toLowerCase();
     return str.charAt(0).toUpperCase() + str.substring(1);
 };
+
+
+return exports;
+}
