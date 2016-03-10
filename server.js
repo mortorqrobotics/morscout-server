@@ -80,6 +80,21 @@ app.post("/getRegionalsForTeam", util.requireLogin, function(req, res) {
     });
 });
 
+app.post("/getInfo", util.requireLogin, function(req, res){
+    User.findOne({
+        _id: req.session.user._id
+    }, "-password", function(err, user){
+        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+            if (!err && user){
+                res.end(JSON.stringify({user: user, team: team}));
+            }
+            else {
+                res.end("fail");
+            }
+        });
+    });
+});
+
 app.post("/chooseCurrentRegional", util.requireAdmin, function(req, res) {
     util.getTeamInfoForUser(req.session.user.current_team.id, function(team) { //FIX
         if (team && typeof(req.body.eventCode) == "string") {
@@ -127,7 +142,7 @@ app.post("/getMatchesForCurrentRegional", util.requireLogin, function(req, res) 
     util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
         if (team) {
             util.request("/event/" + team.currentRegional + "/matches", function(matches) {
-                if (typeof(matches) == "object") {
+                if (matches !== null && typeof(matches) == "object") {
                     var done = 0;
                     for (var index = 0; index < matches.length; index++)(function() {
                         var i = index;
@@ -656,13 +671,18 @@ app.post("/showTasks", util.requireLogin, function(req, res) {
                             var allMatchesAssignedObj = [];
                             for (var i = 0; i < allMatchesAssigned.length; i++){
                                 var match = {};
-                                for (var j = 0; j < matches.length; j++){
-                                    if (matches[j].match_number == allMatchesAssigned[i].matchNumber && matches[j].comp_level == "qm"){
-                                        var ba = matches[j].alliances.blue.teams;
-                                        var ra = matches[j].alliances.red.teams;
-                                        match.team = ra.concat(ba)[allMatchesAssigned[i].teamSection - 1];
-                                        match.matchNumber = allMatchesAssigned[i].matchNumber;
+                                if (matches !== null && typeof(matches) == "object"){
+                                    for (var j = 0; j < matches.length; j++){
+                                        if (matches[j].match_number == allMatchesAssigned[i].matchNumber && matches[j].comp_level == "qm"){
+                                            var ba = matches[j].alliances.blue.teams;
+                                            var ra = matches[j].alliances.red.teams;
+                                            match.team = ra.concat(ba)[allMatchesAssigned[i].teamSection - 1];
+                                            match.matchNumber = allMatchesAssigned[i].matchNumber;
+                                        }
                                     }
+                                }
+                                else {
+                                    break;
                                 }
                                 allMatchesAssignedObj.push(match);
                             }

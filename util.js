@@ -301,7 +301,7 @@ function validateReport(report, cb) {//CHECK for empty values and such
 
 exports.getTeammatesInfo = function(teamCode, cb) { //right now, team is same, later it won't be
     User.find({
-        current_team: {id: teamCode}
+        "current_team.id": teamCode
     }, "-password", function(err, users) {
         if (!err) {
             cb(null, users);
