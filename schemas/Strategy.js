@@ -9,6 +9,7 @@ var strategySchema = new Schema({
 });
 
 
-var Strategy = mongoose.model("Strategy", strategySchema);
-
-module.exports = Strategy;
+module.exports = function(db) {
+	var Strategy = db.model('Strategy', strategySchema);
+	return Strategy;
+};

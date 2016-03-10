@@ -1,0 +1,5 @@
+{
+	"sessionSecret": "changeThis",
+	"networkIP": "127.0.0.1",
+	"networkPort": 80
+}

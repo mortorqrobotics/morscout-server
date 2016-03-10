@@ -1,15 +1,19 @@
+module.exports = function(db, networkSchemas) {
+var exports = {};
+
 var mongoose = require("mongoose");
-var session = require("express-session"); //needed?
 var fs = require("fs");
 var http = require("http");
 
-var Team = require("./schemas/Team.js");
-var DataPoint = require("./schemas/DataPoint.js");
-var Report = require("./schemas/Report.js");
-var User = require("./schemas/User.js");
-var Assignment = require("./schemas/Assignment.js");
-var Strategy = require("./schemas/Strategy.js");
-var Image = require("./schemas/Image.js");
+var DataPoint = require("./schemas/DataPoint.js")(db);
+var Report = require("./schemas/Report.js")(db);
+var Assignment = require("./schemas/Assignment.js")(db);
+var Strategy = require("./schemas/Strategy.js")(db);
+var Image = require("./schemas/Image.js")(db);
+
+for (key in networkSchemas){
+    eval("var " + key + " = networkSchemas." + key + ";");
+}
 
 
 /* usage:
@@ -74,7 +78,7 @@ function clearDataPoints(teamCode, context, cb) {
 
 //Middleware (Do these work?)
 exports.requireAdmin = function(req, res, next) {
-    if (req.session.user.admin) next();
+    if (req.session.user.current_team.position == "admin") next();
     else res.end("fail");
 }
 
@@ -297,8 +301,8 @@ function validateReport(report, cb) {//CHECK for empty values and such
 
 exports.getTeammatesInfo = function(teamCode, cb) { //right now, team is same, later it won't be
     User.find({
-        teamCode: teamCode
-    }, "_id firstName lastName teamCode username admin", function(err, users) {
+        "current_team.id": teamCode
+    }, "-password", function(err, users) {
         if (!err) {
             cb(null, users);
         } else {
@@ -432,7 +436,7 @@ exports.addImagesToReports = function(reports, cb) {//don't use
 
 exports.getTeamInfoForUser = function(teamCode, cb) {
     Team.findOne({
-        teamCode: teamCode
+        id: teamCode
     }, function(err, team) {
         cb(team);
     });
@@ -441,7 +445,7 @@ exports.getTeamInfoForUser = function(teamCode, cb) {
 exports.getUser = function(id, cb) { //.populate maybe?
     User.findOne({
         _id: id
-    }, "_id firstName lastName username admin", function(err, user) {
+    }, "-password", function(err, user) {
         if (err) {
             cb(err, null);
         } else {
@@ -471,3 +475,7 @@ exports.nameCase = function(str) {
     str = str.trim().toLowerCase();
     return str.charAt(0).toUpperCase() + str.substring(1);
 };
+
+
+return exports;
+}
