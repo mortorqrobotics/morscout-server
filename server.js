@@ -40,11 +40,13 @@ Array.prototype.contains = function(arg) {
 app.use(function(req, res, next) {
     if (req.url == "" || req.url == "/") req.url = "/index.html";
     if (req.url.contains(".html")) { //allow css and js to pass
-        if (!["/login.html", "/signup.html", "/createteam.html"].contains(req.url) && !req.session.user) {
-            res.redirect("/login.html");
-        } else if (req.session.user && ["/login.html", "/signup.html", "/createteam.html"].contains(req.url)) {
+        if (!req.session.user){
+            res.redirect("http://morteam.com/login");
+        }
+        else if (["/login.html", "/signup.html", "/createteam.html"].contains(req.url) && req.session.user){
             res.redirect("/");
-        } else {
+        }
+        else {
             next();
         }
     } else {
@@ -244,21 +246,23 @@ app.post("/getMatchInfo", util.requireLogin, function(req, res) {
 });
 
 app.post("/getAllReports", util.requireLogin, function(req, res){
-    util.getTeamInfoForUser(req.session.user.teamCode, function(team) {
+    util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
         if (team){
             Report.find({
-                scoutTeamCode: req.session.user.teamCode,
+                scoutTeamCode: req.session.user.current_team.id,
                 event: team.currentRegional
             }, function(err, reports){
                 if (!err){
                     res.end(JSON.stringify(reports));
                 }
                 else {
+                    console.log("here")
                     res.end("fail");
                 }
             });
         }
         else {
+            console.log
             res.end("fail");
         }
     });
@@ -802,10 +806,10 @@ app.post("/getMatchStrategy", util.requireLogin, function(req, res){
 });
 
 app.post("/getAllMatchStrategies", util.requireLogin, function(req, res){
-    util.getTeamInfoForUser(req.session.user.teamCode, function(team) {
+    util.getTeamInfoForUser(req.session.current_team.id, function(team) {
         Strategy.find({
             eventCode: team.currentRegional,
-            teamCode: req.session.user.teamCode,
+            teamCode: req.session.current_team.id,
         }, function(err, strategies){
             if (!err) res.end(JSON.stringify(strategies));
             else res.end("fail");
