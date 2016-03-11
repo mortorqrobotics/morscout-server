@@ -43,7 +43,10 @@ app.use(function(req, res, next) {
         if (!req.session.user){
             res.redirect("http://morteam.com/login?scout");
         }
-        else if (["/login.html", "/signup.html", "/createteam.html"].contains(req.url) && req.session.user){
+		else if (req.session.user.teams.length == 0) {
+		  res.redirect("http://morteam.com/void");
+		}
+        else if (["/login.html", "/signup.html", "/createteam.html"].contains(req.url)){
             res.redirect("/");
         }
         else {
