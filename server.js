@@ -806,10 +806,10 @@ app.post("/getMatchStrategy", util.requireLogin, function(req, res){
 });
 
 app.post("/getAllMatchStrategies", util.requireLogin, function(req, res){
-    util.getTeamInfoForUser(req.session.current_team.id, function(team) {
+    util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
         Strategy.find({
             eventCode: team.currentRegional,
-            teamCode: req.session.current_team.id,
+            teamCode: req.session.user.current_team.id
         }, function(err, strategies){
             if (!err) res.end(JSON.stringify(strategies));
             else res.end("fail");
