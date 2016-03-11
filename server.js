@@ -41,9 +41,12 @@ app.use(function(req, res, next) {
     if (req.url == "" || req.url == "/") req.url = "/index.html";
     if (req.url.contains(".html")) { //allow css and js to pass
         if (!req.session.user){
-            res.redirect("http://morteam.com/login");
+            res.redirect("http://morteam.com/login?scout");
         }
-        else if (["/login.html", "/signup.html", "/createteam.html"].contains(req.url) && req.session.user){
+		else if (req.session.user.teams.length == 0) {
+		  res.redirect("http://morteam.com/void");
+		}
+        else if (["/login.html", "/signup.html", "/createteam.html"].contains(req.url)){
             res.redirect("/");
         }
         else {
