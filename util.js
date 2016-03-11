@@ -311,17 +311,19 @@ exports.getTeammatesInfo = function(teamCode, cb) { //right now, team is same, l
     });
 }
 
-exports.getUserStats = function(userID, cb) {
+exports.getUserStats = function(userID, currentRegional, cb) {
     var stats = {};
     Report.count({
         scout: userID,
-        context: "match"
+        context: "match",
+        event: currentRegional
     }, function(err, matchesScouted) {
         if (!err) {
             stats.matchesScouted = matchesScouted;
             Report.count({
                 scout: userID,
-                context: "pit"
+                context: "pit",
+                event: currentRegional
             }, function(err, pitsScouted) {
                 if (!err) {
                     stats.pitsScouted = pitsScouted;
@@ -336,7 +338,8 @@ exports.getUserStats = function(userID, cb) {
                     //     }
                     // });
                     Report.find({
-                        scout: userID
+                        scout: userID,
+                        event: currentRegional
                     }, function(err, reports){
                         if (!err) {
                             var allTeams = [];

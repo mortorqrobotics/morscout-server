@@ -939,13 +939,20 @@ app.post("/getPastRegionalResults", function(req, res){//try to fix speed
 });
 
 app.post("/getUserStats", util.requireLogin, function(req, res) { //add for whole team at once too
-    util.getUserStats(req.body.userID, function(err, stats) {
-        if (stats != {}) {
-            res.end(JSON.stringify(stats));
-        } else {
+    util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        if (team){
+            util.getUserStats(req.body.userID, team.currentRegional, function(err, stats) {
+                if (stats != {}) {
+                    res.end(JSON.stringify(stats));
+                } else {
+                    res.end("fail");
+                }
+            });
+        }
+        else {
             res.end("fail");
         }
-    });
+    })
 });
 
 // TODO; add 404
