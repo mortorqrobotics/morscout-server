@@ -245,6 +245,32 @@ app.post("/getMatchInfo", util.requireLogin, function(req, res) {
     });
 });
 
+app.post("/setSC", util.requireAdmin, function(req, res){
+    var isSC = (req.body.isSC == "true");
+    User.update({
+        _id: req.body.userID
+    },{
+        "current_team.scoutCaptain": isSC
+    }, function(err){
+        res.end(util.respond(!err));
+    });
+});
+
+app.post("/getSC", util.requireLogin, function(req, res){
+    User.findOne({
+        _id: req.body.userID
+    },function(err, user){
+        if (user && !err){
+            if (user.current_team.scoutCaptain) res.end("true");
+            else res.end("false");
+        }
+        else {
+            res.end("fail");
+        }
+
+    });
+});
+
 app.post("/getAllReports", util.requireLogin, function(req, res){
     util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
         if (team){
