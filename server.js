@@ -410,7 +410,7 @@ app.post("/setScoutForm", util.requireAdmin, function(req, res) { //Set and edit
         // } else {
         //     res.end("fail");
         // }
-    });
+    // });
 });
 
 app.post("/getTeamListForRegional", util.requireLogin, function(req, res) {
@@ -657,7 +657,7 @@ app.post("/getScoutForm", util.requireLogin, function(req, res) { //get?
                     allDataPoints[i].context = req.body.context;
                     allDataPoints[i].pointNumber = i;
                 }
-                util.addDataPoints(allDataPoints, req.session.user.current_team.id, req.body.context, function(formSet) { //also removes previous data points
+                util.addDataPoints(allDataPoints, req.session.user.current_team.id, req.body.context, function(formSet) {
                     if (formSet) res.end(JSON.stringify(JSON.parse(forms.toString())[req.body.context]));
                     else res.end("fail");
                 });
