@@ -650,7 +650,7 @@ app.post("/getScoutForm", util.requireLogin, function(req, res) { //get?
             res.end(JSON.stringify(dataPoints));
         }
         else if (!err){
-            fs.readFile("defaultForms/2016.json", function(err, forms){
+            fs.readFile(require("path").join(__dirname, "defaultForms/2016.json"), function(err, forms){
                 res.end(JSON.stringify(JSON.parse(forms.toString())[req.body.context]));
             });
         }
