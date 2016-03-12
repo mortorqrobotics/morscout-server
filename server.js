@@ -646,8 +646,17 @@ app.post("/getScoutForm", util.requireLogin, function(req, res) { //get?
         teamCode: req.session.user.current_team.id,
         context: req.body.context
     }).sort("pointNumber").exec(function(err, dataPoints) { //Gets match and pit forms
-        if (!err) res.end(JSON.stringify(dataPoints));
-        else res.end("fail");
+        if (!err && dataPoints.length != 0) {
+            res.end(JSON.stringify(dataPoints));
+        }
+        else if (!err){
+            fs.readFile("defaultForms/2016.json", function(err, forms){
+                res.end(JSON.stringify(forms[context]));
+            });
+        }
+        else {
+            res.end("fail");
+        }
     });
 });
 

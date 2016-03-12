@@ -1,0 +1,451 @@
+{
+    "match": [{
+        "name": "Autonomous",
+        "type": "label",
+        "context": "match",
+        "pointNumber": 0,
+        "options": []
+    }, {
+        "name": "Start Point",
+        "type": "dropdown",
+        "context": "match",
+        "pointNumber": 1,
+        "options": ["Portcullis/CDF", "Moat/Ramparts", "Drawbridge/Sally Port", "Rock Wall/Rough Terrain", "Low Bar", "Spy Box"]
+    }, {
+        "name": "Movement",
+        "type": "dropdown",
+        "context": "match",
+        "pointNumber": 2,
+        "options": ["No Movement", "Reach Defense", "Cross Defense", "Spy Box Movement"]
+    }, {
+        "name": "Auto High Goals",
+        "type": "number",
+        "start": 0,
+        "min": 0,
+        "max": 99,
+        "context": "match",
+        "pointNumber": 3,
+        "options": []
+    }, {
+        "name": "Auto Low Goals",
+        "type": "number",
+        "start": 0,
+        "min": 0,
+        "max": 99,
+        "context": "match",
+        "pointNumber": 4,
+        "options": []
+    }, {
+        "name": "Auto High Goal Misses",
+        "type": "number",
+        "start": 0,
+        "min": 0,
+        "max": 99,
+        "context": "match",
+        "pointNumber": 5,
+        "options": []
+    }, {
+        "name": "Auto Low Goal Misses",
+        "type": "number",
+        "start": 0,
+        "min": 0,
+        "max": 99,
+        "context": "match",
+        "pointNumber": 6,
+        "options": []
+    }, {
+        "name": "Intake from Center Line",
+        "type": "checkbox",
+        "context": "match",
+        "pointNumber": 7,
+        "options": []
+    }, {
+        "name": "Teleoperated",
+        "type": "label",
+        "context": "match",
+        "pointNumber": 8,
+        "options": []
+    }, {
+        "name": "Portcullis/CDF",
+        "type": "number",
+        "start": 0,
+        "min": 0,
+        "max": 99,
+        "context": "match",
+        "pointNumber": 9,
+        "options": []
+    }, {
+        "name": "Moat/Ramparts",
+        "type": "number",
+        "start": 0,
+        "min": 0,
+        "max": 99,
+        "context": "match",
+        "pointNumber": 10,
+        "options": []
+    }, {
+        "name": "Drawbridge/Sally Port",
+        "type": "number",
+        "start": 0,
+        "min": 0,
+        "max": 99,
+        "context": "match",
+        "pointNumber": 11,
+        "options": []
+    }, {
+        "name": "Rock Wall/Rough Terrain",
+        "type": "number",
+        "start": 0,
+        "min": 0,
+        "max": 99,
+        "context": "match",
+        "pointNumber": 12,
+        "options": []
+    }, {
+        "name": "Low Bar",
+        "type": "number",
+        "start": 0,
+        "min": 0,
+        "max": 99,
+        "context": "match",
+        "pointNumber": 13,
+        "options": []
+    }, {
+        "name": "High Goals",
+        "type": "number",
+        "start": 0,
+        "min": 0,
+        "max": 99,
+        "context": "match",
+        "pointNumber": 14,
+        "options": []
+    }, {
+        "name": "Low Goals",
+        "type": "number",
+        "start": 0,
+        "min": 0,
+        "max": 99,
+        "context": "match",
+        "pointNumber": 15,
+        "options": []
+    }, {
+        "name": "High Goal Misses",
+        "type": "number",
+        "start": 0,
+        "min": 0,
+        "max": 99,
+        "context": "match",
+        "pointNumber": 16,
+        "options": []
+    }, {
+        "name": "Low Goal Misses",
+        "type": "number",
+        "start": 0,
+        "min": 0,
+        "max": 99,
+        "context": "match",
+        "pointNumber": 17,
+        "options": []
+    }, {
+        "name": "Intaken Balls",
+        "type": "number",
+        "start": 0,
+        "min": 0,
+        "max": 99,
+        "context": "match",
+        "pointNumber": 18,
+        "options": []
+    }, {
+        "name": "General Intake Speed",
+        "type": "dropdown",
+        "context": "match",
+        "pointNumber": 19,
+        "options": ["Fast", "Slow"]
+    }, {
+        "name": "General Shot Time",
+        "type": "dropdown",
+        "context": "match",
+        "pointNumber": 20,
+        "options": ["Fast", "Average", "Slow"]
+    }, {
+        "name": "General Shot Position",
+        "type": "dropdown",
+        "context": "match",
+        "pointNumber": 21,
+        "options": ["None", "Alignment Line", "Outer Works", "On/Near Batter", "Other"]
+    }, {
+        "name": "If General Shot Position \"Other\", specify",
+        "type": "text",
+        "context": "match",
+        "pointNumber": 22,
+        "options": []
+    }, {
+        "name": "General Intake Position",
+        "type": "dropdown",
+        "context": "match",
+        "pointNumber": 23,
+        "options": ["None", "Neutral Zone", "Team Secret Passage", "Opponent Secret Passage", "Opponent Courtyard", "Team Courtyard"]
+    }, {
+        "name": "End Game",
+        "type": "dropdown",
+        "context": "match",
+        "pointNumber": 24,
+        "options": ["None", "Challenge", "Missed Challenge", "Scale", "Missed Scale"]
+    }, {
+        "name": "Penalties",
+        "type": "label",
+        "context": "match",
+        "pointNumber": 25,
+        "options": []
+    }, {
+        "name": "Fouls/Tech Fouls",
+        "type": "number",
+        "start": 0,
+        "min": 0,
+        "max": 99,
+        "context": "match",
+        "pointNumber": 26,
+        "options": []
+    }, {
+        "name": "Disabled/Stuck",
+        "type": "dropdown",
+        "context": "match",
+        "pointNumber": 27,
+        "options": ["Never", "<30s", ">30s"]
+    }, {
+        "name": "Defense Stuck On",
+        "type": "dropdown",
+        "context": "match",
+        "pointNumber": 28,
+        "options": ["Never", "Moat/Ramparts", "Drawbridge/Sally Port", "Portcullis/CDF", "Rock Wall/Rough Terrain", "Low Bar"]
+    }, {
+        "name": "No Show",
+        "type": "checkbox",
+        "context": "match",
+        "pointNumber": 29,
+        "options": []
+    }, {
+        "name": "Other",
+        "type": "label",
+        "context": "match",
+        "pointNumber": 30,
+        "options": []
+    }, {
+        "name": "Advantages",
+        "type": "text",
+        "context": "match",
+        "pointNumber": 31,
+        "options": []
+    }, {
+        "name": "Issues",
+        "type": "text",
+        "context": "match",
+        "pointNumber": 32,
+        "options": []
+    }, {
+        "name": "Other Notes",
+        "type": "text",
+        "context": "match",
+        "pointNumber": 33,
+        "options": []
+    }],
+    "pit": [{
+        "name": "Robot Specifications",
+        "type": "label",
+        "context": "pit",
+        "pointNumber": 0,
+        "options": []
+    }, {
+        "name": "Drivetrain",
+        "type": "dropdown",
+        "context": "pit",
+        "pointNumber": 1,
+        "options": ["West Coast Drive/Tank", "Tread", "Swerve", "Mecanum/Holonomic", "Hybrid"]
+    }, {
+        "name": "High Goal Shooter",
+        "type": "checkbox",
+        "context": "pit",
+        "pointNumber": 2,
+        "options": []
+    }, {
+        "name": "Low Goal Shooter",
+        "type": "checkbox",
+        "context": "pit",
+        "pointNumber": 3,
+        "options": []
+    }, {
+        "name": "Shooter Style",
+        "type": "text",
+        "context": "pit",
+        "pointNumber": 4,
+        "options": []
+    }, {
+        "name": "Shooter Auto Align",
+        "type": "checkbox",
+        "context": "pit",
+        "pointNumber": 5,
+        "options": []
+    }, {
+        "name": "Rock Wall",
+        "type": "checkbox",
+        "context": "pit",
+        "pointNumber": 6,
+        "options": []
+    }, {
+        "name": "Rough Terrain",
+        "type": "checkbox",
+        "context": "pit",
+        "pointNumber": 7,
+        "options": []
+    }, {
+        "name": "Moat",
+        "type": "checkbox",
+        "context": "pit",
+        "pointNumber": 8,
+        "options": []
+    }, {
+        "name": "Ramparts",
+        "type": "checkbox",
+        "context": "pit",
+        "pointNumber": 9,
+        "options": []
+    }, {
+        "name": "Portcullis",
+        "type": "checkbox",
+        "context": "pit",
+        "pointNumber": 10,
+        "options": []
+    }, {
+        "name": "Cheval de Frise",
+        "type": "checkbox",
+        "context": "pit",
+        "pointNumber": 11,
+        "options": []
+    }, {
+        "name": "Drawbridge (Solo)",
+        "type": "checkbox",
+        "context": "pit",
+        "pointNumber": 12,
+        "options": []
+    }, {
+        "name": "Sally Port (Solo)",
+        "type": "checkbox",
+        "context": "pit",
+        "pointNumber": 13,
+        "options": []
+    }, {
+        "name": "Low Bar",
+        "type": "checkbox",
+        "context": "pit",
+        "pointNumber": 14,
+        "options": []
+    }, {
+        "name": "Climber",
+        "type": "checkbox",
+        "context": "pit",
+        "pointNumber": 15,
+        "options": []
+    }, {
+        "name": "Climb Time",
+        "type": "number",
+        "start": 0,
+        "min": 0,
+        "max": 99,
+        "context": "pit",
+        "pointNumber": 16,
+        "options": []
+    }, {
+        "name": "High Goal Blocker",
+        "type": "checkbox",
+        "context": "pit",
+        "pointNumber": 17,
+        "options": []
+    }, {
+        "name": "Preferred Shooting Location",
+        "type": "dropdown",
+        "context": "pit",
+        "pointNumber": 18,
+        "options": ["On Batter", "Against Batter", "Alignment Line", "Outer Works", "Other"]
+    }, {
+        "name": "If Shooter Location \"Other\", specify",
+        "type": "text",
+        "context": "pit",
+        "pointNumber": 19,
+        "options": []
+    }, {
+        "name": "Ability to Shoot Over 4'6\" Defense",
+        "type": "checkbox",
+        "context": "pit",
+        "pointNumber": 20,
+        "options": []
+    }, {
+        "name": "Preferred Intake Location",
+        "type": "dropdown",
+        "context": "pit",
+        "pointNumber": 21,
+        "options": ["None", "Neutral Zone", "Team Secret Passage", "Opponent Secret Passage", "Opponent Courtyard", "Team Courtyard"]
+    }, {
+        "name": "Robot Camera Live Feed",
+        "type": "checkbox",
+        "context": "pit",
+        "pointNumber": 22,
+        "options": []
+    }, {
+        "name": "Match Specifics",
+        "type": "label",
+        "context": "pit",
+        "pointNumber": 23,
+        "options": []
+    }, {
+        "name": "Preferred Role",
+        "type": "dropdown",
+        "context": "pit",
+        "pointNumber": 24,
+        "options": ["Breach + High Goal", "Breach + Low Goal", "Breach", "Defense", "High Goal Only", "Low Goal Only"]
+    }, {
+        "name": "Preferred Human Player Position",
+        "type": "dropdown",
+        "context": "pit",
+        "pointNumber": 25,
+        "options": ["Boulder Loader", "Spy", "Other"]
+    }, {
+        "name": "If Human Player \"Other\", specify",
+        "type": "text",
+        "context": "pit",
+        "pointNumber": 26,
+        "options": []
+    }, {
+        "name": "~ Goals/Match",
+        "type": "number",
+        "start": 0,
+        "min": 0,
+        "max": 99,
+        "context": "pit",
+        "pointNumber": 27,
+        "options": []
+    }, {
+        "name": "~ Crossings/Match",
+        "type": "number",
+        "start": 0,
+        "min": 0,
+        "max": 99,
+        "context": "pit",
+        "pointNumber": 28,
+        "options": []
+    }, {
+        "name": "Autonomous Function",
+        "type": "dropdown",
+        "context": "pit",
+        "pointNumber": 29,
+        "options": ["None", "Cross", "Reach", "Cross + High Goal", "Cross + Low Goal", "Spy Box", "Spy Box + High Goal", "Spy Box + Low Goal", "2+ High Goal"]
+    }, {
+        "name": "Estimated Cycle Time",
+        "type": "number",
+        "start": 0,
+        "min": 0,
+        "max": 99,
+        "context": "pit",
+        "pointNumber": 30,
+        "options": []
+    }]
+}
