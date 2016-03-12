@@ -399,17 +399,17 @@ app.post("/setScoutForm", util.requireAdmin, function(req, res) { //Set and edit
         allDataPoints[i].context = req.body.context;
         allDataPoints[i].pointNumber = i;
     }
-    Report.count({
-        scoutTeamCode: req.session.user.current_team.id,
-        context: req.body.context
-    }, function(err, count) {
-        if (!err) {
+    // Report.count({
+    //     scoutTeamCode: req.session.user.current_team.id,
+    //     context: req.body.context
+    // }, function(err, count) {
+    //     if (!err) {
             util.addDataPoints(allDataPoints, req.session.user.current_team.id, req.body.context, function(formSet) { //also removes previous data points
                 res.end(util.respond(formSet));
             });
-        } else {
-            res.end("fail");
-        }
+        // } else {
+        //     res.end("fail");
+        // }
     });
 });
 
@@ -651,7 +651,16 @@ app.post("/getScoutForm", util.requireLogin, function(req, res) { //get?
         }
         else if (!err){
             fs.readFile(require("path").join(__dirname, "defaultForms/2016.json"), function(err, forms){
-                res.end(JSON.stringify(JSON.parse(forms.toString())[req.body.context]));
+                var allDataPoints = JSON.parse(forms.toString())[req.body.context];
+                for (var i = 0; i < allDataPoints.length; i++) {
+                    allDataPoints[i].teamCode = req.session.user.current_team.id;
+                    allDataPoints[i].context = req.body.context;
+                    allDataPoints[i].pointNumber = i;
+                }
+                util.addDataPoints(allDataPoints, req.session.user.current_team.id, req.body.context, function(formSet) { //also removes previous data points
+                    if (formSet) res.end(JSON.stringify(JSON.parse(forms.toString())[req.body.context]));
+                    else res.end("fail");
+                });
             });
         }
         else {
