@@ -110,13 +110,12 @@ exports.addDataPoints = function(dataPoints, teamCode, context, cb) {
                 var allNames = []; //name is unique
                 if ((!~["checkbox", "radio", "dropdown", "text", "number", "label"].indexOf(type)) ||
                     (~["radio", "dropdown"].indexOf(type) && !dataPoint.options) ||
-                    (!~["radio", "dropdown"].indexOf(type) && dataPoint.options) ||
                     (type == "number" && !(isNum(dataPoint.min) && isNum(dataPoint.start) && isNum(dataPoint.start))) ||
                     (type != "number" && (isNum(dataPoint.min) || isNum(dataPoint.max) || isNum(dataPoint.start))) ||
                     (dataPoint.context != "match" && dataPoint.context != "pit") ||
-                    (~allNames.indexOf(dataPoint.name)) ||
-                    (type == "label" && (dataPoint.min || dataPoint.max || dataPoint.start || dataPoint.options))) { //This was a switch-case but ben did not want that //Names must be unique
+                    (~allNames.indexOf(dataPoint.name))) { 
                     allPointsValid = false;
+console.log(dataPoint);
                     clearDataPoints(teamCode, context, function() { //if one data point is corrupt the form is rejected and all points are cleared
                     });
                 } else {
@@ -131,6 +130,7 @@ exports.addDataPoints = function(dataPoints, teamCode, context, cb) {
                             }
                         } else {
                             allPointsValid = false;
+console.log(err);
                             clearDataPoints(teamCode, context, function() { //if one data point is corrupt the form is rejected and all points are cleared
                             });
                         }
