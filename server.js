@@ -241,26 +241,26 @@ app.post("/submitReport", util.requireLogin, function(req, res) { //Check all mi
                 if (team.currentRegional && (req.body.regional == team.currentRegional)) {
                     report.event = team.currentRegional;
                     //report.isPrivate = false; //team.showScoutingInfo;
-                    Report.find({
-                        scoutTeamCode: req.session.user.current_team.id
-                    }, function(err, reports) {
-                        if (err) {
-                            res.end("fail");
-                        } else {
-                            if (reports.length == 0) {
-                                report.isPrivate = false;
-                            }
-                            else {
-                                report.isPrivate = (reports[0].isPrivate.toString() == "true");
-                            }
-                            for (var i = 0; i < report.data.length; i++) {
-                                if (typeof(report.data[i].value) == "string") report.data[i].value = util.sec(report.data[i].value);
-                            }
-                            util.submitReport(report, function(didSubmit) {
-                                res.end(util.respond(didSubmit));
-                            });
-                        }
+                    // Report.find({
+                    //     scoutTeamCode: req.session.user.current_team.id
+                    // }, function(err, reports) {
+                    //     if (err) {
+                    //         res.end("fail");
+                    //     } else {
+                    //         if (reports.length == 0) {
+                    //             report.isPrivate = false;
+                    //         }
+                    //         else {
+                    //             report.isPrivate = (reports[0].isPrivate.toString() == "true");
+                    //         }
+                    for (var i = 0; i < report.data.length; i++) {
+                        if (typeof(report.data[i].value) == "string") report.data[i].value = util.sec(report.data[i].value);
+                    }
+                    util.submitReport(report, function(didSubmit) {
+                        res.end(util.respond(didSubmit));
                     });
+                    //     }
+                    // });
                 } else {
                     res.end("fail");
                 }
@@ -319,13 +319,11 @@ app.post("/getAllReports", util.requireLogin, function(req, res){
                     res.end(JSON.stringify(reports));
                 }
                 else {
-                    console.log("here")
                     res.end("fail");
                 }
             });
         }
         else {
-            console.log
             res.end("fail");
         }
     });
@@ -339,28 +337,28 @@ app.post("/getMatchReports", util.requireLogin, function(req, res) {
             otherTeams: []
         };
         if (team) {
-            Report.find({
-                context: "match",
-                match: req.body.match,
-                team: req.body.team,
-                event: team.currentRegional,
-                scoutTeamCode: req.session.user.current_team.id
-            }, util.handleError(res, function(yourReports) {
-                allReports.yourTeam = yourReports;
+            util.getPublicTeams(req.session.user.current_team.id, function(teamCodes){
                 Report.find({
                     context: "match",
                     match: req.body.match,
                     team: req.body.team,
                     event: team.currentRegional,
-                    isPrivate: false,
-                    scoutTeamCode: {
-                        $ne: req.session.user.current_team.id
-                    }
-                }, "data scout team match event imagePaths", util.handleError(res, function(otherReports) {
-                    allReports.otherTeams = otherReports;
-                    res.end(JSON.stringify(allReports));
+                    scoutTeamCode: req.session.user.current_team.id
+                }, util.handleError(res, function(yourReports) {
+                    allReports.yourTeam = yourReports;
+                    Report.find({
+                        context: "match",
+                        match: req.body.match,
+                        team: req.body.team,
+                        event: team.currentRegional,
+                        //isPrivate: false,
+                        scoutTeamCode: {$in: teamCodes}
+                    }, "data scout team match event", util.handleError(res, function(otherReports) {
+                        allReports.otherTeams = otherReports;
+                        res.end(JSON.stringify(allReports));
+                    }));
                 }));
-            }));
+            });
         } else {
             res.end("fail");
         }
@@ -608,30 +606,22 @@ app.post("/clearScoutingData", util.requireAdmin, function(req, res) {
 
 app.post("/setDataStatus", util.requireAdmin, function(req, res) {
     var isPrivate = (req.body.status == "private");
-    Report.update({
-        scoutTeamCode: req.session.user.current_team.id
+    Team.update({
+        id: req.session.user.current_team.id
     }, {
         isPrivate: isPrivate
-    }, {
-        multi: true
-    }, function(err) {
+    },function(err) {
         res.end(util.respond(!err));
     });
 });
 
 app.post("/getDataStatus", util.requireAdmin, function(req, res) {
-    Report.find({
-        scoutTeamCode: req.session.user.current_team.id
-    }, function(err, reports) {
-        if (err) {
-            console.error(err);
+    util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        if (team){
+            res.end(team.isPrivate.toString());
+        }
+        else {
             res.end("fail");
-        } else {
-            if (reports.length == 0) {
-                res.end("false");
-            } else {
-                res.end(reports[0].isPrivate.toString())
-            }
         }
     });
 });

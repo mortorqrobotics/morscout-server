@@ -7,7 +7,7 @@ var reportSchema = new Schema({
     data: {type: Object, required: true},
     scout: {type: Schema.Types.ObjectId, ref: "User", required: true},
     scoutTeamCode: {type: String, required: true},
-    isPrivate: {type: Boolean, required: true},
+    //isPrivate: {type: Boolean, required: true},
     team: {type: Number, required: true},
     context: {type: String, required: true},
     match: {type: Number, required: false},

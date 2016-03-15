@@ -113,9 +113,8 @@ exports.addDataPoints = function(dataPoints, teamCode, context, cb) {
                     (type == "number" && !(isNum(dataPoint.min) && isNum(dataPoint.start) && isNum(dataPoint.start))) ||
                     (type != "number" && (isNum(dataPoint.min) || isNum(dataPoint.max) || isNum(dataPoint.start))) ||
                     (dataPoint.context != "match" && dataPoint.context != "pit") ||
-                    (~allNames.indexOf(dataPoint.name))) { 
+                    (~allNames.indexOf(dataPoint.name))) {
                     allPointsValid = false;
-console.log(dataPoint);
                     clearDataPoints(teamCode, context, function() { //if one data point is corrupt the form is rejected and all points are cleared
                     });
                 } else {
@@ -130,7 +129,6 @@ console.log(dataPoint);
                             }
                         } else {
                             allPointsValid = false;
-console.log(err);
                             clearDataPoints(teamCode, context, function() { //if one data point is corrupt the form is rejected and all points are cleared
                             });
                         }
@@ -363,43 +361,68 @@ exports.getUserStats = function(userID, currentRegional, cb) {
     });
 }
 
+function getPublicTeams(selfTeamCode, cb){
+    Team.find({
+        isPrivate: false,
+        id: {$ne: selfTeamCode}
+    }, function(err, teams){
+        if (!err){
+            var teamCodes = [];
+            teams.forEach(function(team){
+                teamCodes.push(team.id);
+            });
+            cb(teamCodes);
+        }
+        else {
+            cb(false);
+        }
+    });
+}
+//Merge ^^vv
+exports.getPublicTeams = function(selfTeamCode, cb){
+    getPublicTeams(selfTeamCode, function(teamCodes){
+        cb(teamCodes);
+    });
+}
+
+
 exports.getTeamReports = function(scoutTeamCode, teamNumber, reportContext, query, cb) {
     var allReports = {
         yourTeam: [],
         otherTeams: []
     };
     if (reportContext == "match" || reportContext == "pit") {
-        Report.find({
-            team: teamNumber,
-            context: reportContext,
-            isPrivate: false,
-            event: query,
-            scoutTeamCode: {
-                $ne: scoutTeamCode
-            }
-        }, "data scout team match event", function(err, otherTeamReports) {
-            if (!err) {
-                //addImagesToReports(otherTeamReports, function(newOtherTeamReports) {
-                    allReports.otherTeams = otherTeamReports;
-                    Report.find({
-                        team: teamNumber,
-                        context: reportContext,
-                        event: query,
-                        scoutTeamCode: scoutTeamCode
-                    }, "data scout team match event", function(err, yourTeamReports) {
-                        if (!err) {
-                            //addImagesToReports(yourTeamReports, function(newYourTeamReports) {
-                                allReports.yourTeam = yourTeamReports;
-                                cb(allReports);
-                            //});
-                        } else {
-                            cb(false);
-                        }
-                    });
-                //});
-            } else {
-                cb(false);
-            }
+        getPublicTeams(scoutTeamCode, function(teamCodes){
+            Report.find({
+                team: teamNumber,
+                context: reportContext,
+                //isPrivate: false,
+                event: query,
+                scoutTeamCode: {$in: teamCodes}
+            }, "data scout team match event", function(err, otherTeamReports) {
+                if (!err) {
+                    //addImagesToReports(otherTeamReports, function(newOtherTeamReports) {
+                        allReports.otherTeams = otherTeamReports;
+                        Report.find({
+                            team: teamNumber,
+                            context: reportContext,
+                            event: query,
+                            scoutTeamCode: scoutTeamCode
+                        }, "data scout team match event", function(err, yourTeamReports) {
+                            if (!err) {
+                                //addImagesToReports(yourTeamReports, function(newYourTeamReports) {
+                                    allReports.yourTeam = yourTeamReports;
+                                    cb(allReports);
+                                //});
+                            } else {
+                                cb(false);
+                            }
+                        });
+                    //});
+                } else {
+                    cb(false);
+                }
+            });
         });
     } else {
         cb(false);
