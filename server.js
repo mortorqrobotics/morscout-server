@@ -701,6 +701,14 @@ app.post("/getScoutForm", util.requireLogin, function(req, res) { //get?
     });
 });
 
+app.post("/removeTask", util.requireAdmin, function(req, res){
+    Assignment.remove({
+        _id: req.body.id
+    }, function(err){
+        res.end(util.respond(!err));
+    });
+});
+
 app.post("/assignTask", util.requireAdmin, function(req, res) {
     //req.body.scoutID is the _id of the user assigned the task
     util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
