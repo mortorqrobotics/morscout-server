@@ -31,7 +31,10 @@ module.exports = function(app, schemas, networkSchemas, db) {
 
 	function getCsv(reports, context) {
 		var data = [];
-		var metaKeys = ["event"];
+		var metaKeys = [
+			"event",
+			"team"
+		];
 		if(context == "match") {
 			metaKeys.push("match");
 		}
@@ -51,7 +54,10 @@ module.exports = function(app, schemas, networkSchemas, db) {
 					row[index] = entry;
 				}
 			}
-			var metaData = [report.event];
+			var metaData = [
+				report.event,
+				report.team
+			];
 			if(context == "match") {
 				metaData.push(report.match);
 			}
