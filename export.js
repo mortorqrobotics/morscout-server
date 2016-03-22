@@ -1,10 +1,12 @@
-module.exports = function(app, schemas) {
+module.exports = function(app, schemas, networkSchemas, db) {
 
-	app.get("/exportMatchData", function(req, res) {
+	var util = require("./util.js")(db, networkSchemas);
+
+	app.get("/exportMatchData", util.requireLogin, function(req, res) {
 		sendCsv("match", req, res);
 	});
 
-	app.get("/exportPitData", function(req, res) {
+	app.get("/exportPitData", util.requireLogin, function(req, res) {
 		sendCsv("pit", req, res)
 	});
 

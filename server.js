@@ -67,7 +67,7 @@ app.post("/validateUser", util.requireLogin, function(req, res) {
     }
 });
 
-require("./export.js")(app, schemas);
+require("./export.js")(app, schemas, networkSchemas, db);
 
 app.post("/logout", util.requireLogin, function(req, res) {
     req.session.destroy();
