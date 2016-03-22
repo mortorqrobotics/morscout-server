@@ -167,7 +167,13 @@ app.post("/getMatchesForCurrentRegional", util.requireLogin, function(req, res) 
                             done++;
                             matches[i].progress = teamsReported.length;
                             if (done == matches.length) {
-                                res.end(JSON.stringify(matches)); //array
+                                var matchesFiltered = matches.filter(function(match){
+                                    if (match.comp_level == "qm"){
+                                        return true;
+                                    }
+                                    return false;
+                                });
+                                res.end(JSON.stringify(matchesFiltered)); //array
                             }
                         });
                     })();
