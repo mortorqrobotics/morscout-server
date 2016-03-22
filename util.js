@@ -460,11 +460,37 @@ exports.addImagesToReports = function(reports, cb) {//don't use
     }
 }
 
+function isDef(v){
+    return (v !== null && typeof(v) != "undefined");
+}
+
 exports.getTeamInfoForUser = function(teamCode, cb) {
     Team.findOne({
         id: teamCode
     }, function(err, team) {
-        cb(team);
+        if (team.currentRegional.trim() == "" || !isDef(team.currentRegional)){
+            var date = new Date();
+            var year = date.getFullYear();
+            util.request("/team/frc" + team.number + "/" + year + "/events", function(events) {
+                var defKey = events[0].key;
+                if (isDef(defKey)){
+                    Team.update({
+                        id: teamCode
+                    },{
+                        currentRegional: defKey
+                    }, function(err, newTeam){
+                        if (!err) cb(newTeam);
+                        else cb(team);
+                    });
+                }
+                else {
+                    cb(team);
+                }
+            });
+        }
+        else {
+            cb(team);
+        }
     });
 }
 
