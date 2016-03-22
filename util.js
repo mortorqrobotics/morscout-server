@@ -468,10 +468,10 @@ exports.getTeamInfoForUser = function(teamCode, cb) {
     Team.findOne({
         id: teamCode
     }, function(err, team) {
-        if (team.currentRegional.trim() == "" || !isDef(team.currentRegional)){
+        if (!isDef(team.currentRegional) || team.currentRegional.trim() == ""){
             var date = new Date();
             var year = date.getFullYear();
-            util.request("/team/frc" + team.number + "/" + year + "/events", function(events) {
+            exports.request("/team/frc" + team.number + "/" + year + "/events", function(events) {
                 var defKey = events[0].key;
                 if (isDef(defKey)){
                     Team.update({
