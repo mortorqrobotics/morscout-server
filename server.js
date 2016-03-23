@@ -221,6 +221,14 @@ app.post("/getProgressForMatches", util.requireLogin, function(req, res){
     });
 });
 
+app.post("/deleteReport", util.requireAdmin, function(req, res){
+    Report.remove({
+        _id: req.body.id
+    }, function(err){
+        res.end(util.respond(!err));
+    });
+});
+
 app.post("/submitReport", util.requireLogin, function(req, res) { //Check all middleware
     var report = JSON.parse(JSON.stringify(req.body)); //req.body contains data(array), team, context, match(if needed), isPrivate, and images([Object]): NOT scouter info
     if(typeof(report.data) == "string") {
@@ -322,7 +330,7 @@ app.post("/getAllReports", util.requireLogin, function(req, res){
             Report.find({
                 scoutTeamCode: req.session.user.current_team.id,
                 event: team.currentRegional
-            }, function(err, reports){
+            }, "_id data scout team match event", function(err, reports){
                 if (!err){
                     res.end(JSON.stringify(reports));
                 }
@@ -352,7 +360,7 @@ app.post("/getMatchReports", util.requireLogin, function(req, res) {
                     team: req.body.team,
                     event: team.currentRegional,
                     scoutTeamCode: req.session.user.current_team.id
-                }, util.handleError(res, function(yourReports) {
+                }, "_id data scout team match event", util.handleError(res, function(yourReports) {
                     allReports.yourTeam = yourReports;
                     Report.find({
                         context: "match",
