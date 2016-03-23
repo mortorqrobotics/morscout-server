@@ -468,7 +468,7 @@ exports.getTeamInfoForUser = function(teamCode, cb) {
     Team.findOne({
         id: teamCode
     }, function(err, team) {
-        if (!isDef(team.currentRegional) || team.currentRegional.trim() == ""){
+        if (isDef(team) && (!isDef(team.currentRegional) || team.currentRegional.trim() == "")){
             var date = new Date();
             var year = date.getFullYear();
             exports.request("/team/frc" + team.number + "/" + year + "/events", function(events) {
