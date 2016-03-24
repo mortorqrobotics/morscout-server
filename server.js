@@ -187,6 +187,47 @@ app.post("/getMatchesForCurrentRegional", util.requireLogin, function(req, res) 
     });
 });
 
+app.post("/getProgressForPit", util.requireLogin, function(req, res){
+    util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        if (team) {
+            util.request("/event/" + team.currentRegional + "/teams", function(teams) {
+                if (Array.isArray(teams)) {
+                    var isValid = true;
+                    var numTeams = teams.length;
+                    var progress = {};
+                    var year = team.currentRegional.substring(0, 4);
+                    query = new RegExp("^" + year + "[a-zA-Z]+\\d*$", "i");
+                    for (var index = 0; index < teams.length; index++)(function(){
+                        var i = index;
+                        var teamNum = parseInt(teams[i].team_number);
+                        Report.find({
+                            scoutTeamCode: req.session.user.current_team.id,
+                            team: teamNum,
+                            event: query,
+                            context: "pit"
+                        }, function(err, reports){
+                            if (!err){
+                                var num = reports.length;
+                                progress[teamNum] = num;
+                                if (Object.keys(progress).length == numTeams){
+                                    res.end(JSON.stringify(progress));
+                                }
+                            }
+                            else if(isValid){
+                                res.end("fail");
+                                isValid = false;
+                            }
+                        });
+                    })();
+                } else {
+                    res.end("fail");
+                }
+            });
+        } else {
+            res.end("fail");
+        }
+    });
+});
 
 app.post("/getProgressForMatches", util.requireLogin, function(req, res){
     util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
@@ -465,7 +506,7 @@ app.post("/getTeamListForRegional", util.requireLogin, function(req, res) {
     util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
         if (team) {
             util.request("/event/" + team.currentRegional + "/teams", function(teams) {
-                if (typeof(teams) == "object") { //arr
+                if (Array.isArray(teams)) { //arr
                     res.end(JSON.stringify(teams));
                 } else {
                     res.end("fail");
