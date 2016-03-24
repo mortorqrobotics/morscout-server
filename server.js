@@ -330,7 +330,7 @@ app.post("/getAllReports", util.requireLogin, function(req, res){
             Report.find({
                 scoutTeamCode: req.session.user.current_team.id,
                 event: team.currentRegional
-            }, "_id data scout team match event", function(err, reports){
+            }, "_id data scout team match event context", function(err, reports){
                 if (!err){
                     res.end(JSON.stringify(reports));
                 }
