@@ -548,7 +548,11 @@ app.post("/getSortedTeamAvgs", util.requireLogin, function(req, res) {
                                     var teamTotal = 0;
                                     if (found) {
                                         for (var j = 0; j < reports.length; j++) {
-                                            if (reports[j].data[valIndex]) teamTotal += parseFloat(reports[j].data[valIndex].value);//fix?
+                                            if (reports[j].data[valIndex]) {
+						if (reports[j].data[valIndex] && reports[j].data[valIndex].name == sortBy){
+                                               	    teamTotal += parseFloat(reports[j].data[valIndex].value);
+                                            	}
+					    }
                                         }
                                     }
                                     if (reports.length != 0) teamAvgs[teamNumber] = teamTotal / reports.length;
