@@ -408,7 +408,7 @@ exports.getTeamReports = function(scoutTeamCode, teamNumber, reportContext, quer
                             context: reportContext,
                             event: query,
                             scoutTeamCode: scoutTeamCode
-                        }, "_id data scout team match event", function(err, yourTeamReports) {
+                        }, " _id data scout team match event").populate("scout", "firstname lastname").exec(function(err, yourTeamReports) {
                             if (!err) {
                                 //addImagesToReports(yourTeamReports, function(newYourTeamReports) {
                                     allReports.yourTeam = yourTeamReports;

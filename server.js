@@ -371,7 +371,7 @@ app.post("/getAllReports", util.requireLogin, function(req, res){
             Report.find({
                 scoutTeamCode: req.session.user.current_team.id,
                 event: team.currentRegional
-            }, "_id data scout team match event context", function(err, reports){
+            }, "_id data scout team match event context").populate("scout", "firstname lastname").exec(function(err, reports){
                 if (!err){
                     res.end(JSON.stringify(reports));
                 }
@@ -401,7 +401,7 @@ app.post("/getMatchReports", util.requireLogin, function(req, res) {
                     team: req.body.team,
                     event: team.currentRegional,
                     scoutTeamCode: req.session.user.current_team.id
-                }, "_id data scout team match event", util.handleError(res, function(yourReports) {
+                }, "_id data scout team match event").populate("scout", "firstname lastname").exec(util.handleError(res, function(yourReports) {
                     allReports.yourTeam = yourReports;
                     Report.find({
                         context: "match",
