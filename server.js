@@ -572,68 +572,36 @@ module.exports = function(app, networkSchemas, db) {
         util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
             if (team) {
                 util.request("/event/" + team.currentRegional + "/teams", function(teams) {
-                    if (typeof(teams) == "object") {
-                        var sortValid = true;
+                    if (Array.isArray(teams)) {
                         var sortBy = req.body.sortBy; //Goals, Blocks, etc.
                         var teamAvgs = {};
-                        for (var i = 0; i < teams.length; i++) {
-                            if (sortValid)(function() {
-                                var teamNumber = teams[i].team_number;
-                                Report.find({
-                                    team: teamNumber,
-                                    scoutTeamCode: req.session.user.current_team.id,
-                                    event: team.currentRegional
-                                }, function(err, reports) {
-                                    var val;
-                                    var valIndex;
-                                    var found = false;
-                                    var isNum = false;
-                                    if (reports.length != 0) {
-                                        for (var l = 0; l < reports.length; l++) {
-                                            for (var k = 0; k < reports[l].data.length; k++) {
-                                                if (reports[l].data[k].name == sortBy) {
-                                                    found = true;
-                                                    valIndex = k;
-                                                    val = parseFloat(reports[l].data[k].value);
-                                                    isNum = util.isNum(val);
-                                                    break;
-                                                }
-                                            }
-                                            if (found) {
-                                                break;
+                        for (var i = 0; i < teams.length; i++)(function() {
+                            var teamNumber = teams[i].team_number;
+                            Report.find({
+                                team: teamNumber,
+                                scoutTeamCode: req.session.user.current_team.id,
+                                event: team.currentRegional
+                            }, function(err, reports) {
+                                var values = [];
+                                if (reports.length != 0) {
+                                    for (var l = 0; l < reports.length; l++) {
+                                        for (var k = 0; k < reports[l].data.length; k++) {
+                                            if (reports[l].data[k].name == sortBy) {
+                                                var val = parseFloat(reports[l].data[k].value);
+                                                var isNum = util.isNum(val);
+                                                if (isNum) values.push(val);
                                             }
                                         }
                                     }
-                                    if (!found) {
-                                        val = 0;
-                                    }
-                                    if (!err && (reports.length == 0 || (found && isNum) || !found)) { //checks if that data point is number
-                                        var teamTotal = 0;
-                                        if (found) {
-                                            for (var j = 0; j < reports.length; j++) {
-                                                if (reports[j].data[valIndex]) {
-                                                    if (reports[j].data[valIndex] && reports[j].data[valIndex].name == sortBy) {
-                                                        var numVal = parseFloat(reports[j].data[valIndex].value);
-                                                        if (typeof(numVal) == "number" && !isNaN(numVal)) teamTotal += numVal;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        if (reports.length != 0) teamAvgs[teamNumber] = teamTotal / reports.length;
-                                        else teamAvgs[teamNumber] = 0;
-                                        if (Object.keys(teamAvgs).length == teams.length) {
-                                            res.end(JSON.stringify(util.sortObject(teamAvgs)));
-                                        }
-                                    } else {
-                                        sortValid = false;
-                                    }
-                                });
-                            })();
-                            else {
-                                res.end("cannot sort by non-numerical value, and/or error");
-                                break;
-                            }
-                        }
+                                }
+                                if (values.length == 0 || reports.length == 0) values.push(0);
+                                var teamAvg = util.average(values);
+                                teamAvgs[teamNumber] = teamAvg;
+                                if (Object.keys(teamAvgs).length == teams.length) {
+                                    res.end(JSON.stringify(util.sortObject(teamAvgs)));
+                                }
+                            });
+                        })();
                     } else {
                         res.end("fail");
                     }

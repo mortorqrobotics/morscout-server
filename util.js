@@ -40,7 +40,9 @@ exports.sec = function(str){
 function sec(str){
     return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
-
+exports.average = function(arr) {
+    return arr.reduce(function(a,b){return a+b;}) / arr.length;
+};
 exports.isInt = function(value) {
     return !isNaN(value) && (function(x) {
         return (x | 0) === x;
