@@ -229,6 +229,32 @@ app.post("/getProgressForPit", util.requireLogin, function(req, res){
     });
 });
 
+app.post("/getBAImageLinks", util.requireLogin, function(req, res){
+    util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        if (team) {
+            var year = team.currentRegional.substring(0, 4);
+            var teamNumber = req.body.teamNumber;
+            var links = [];
+            util.request("/team/frc"+teamNumber+"/"+year+"/media", function(sources){
+                console.log("/team/frc"+teamNumber+"/"+year+"/media")
+                for (var i = 0; i < sources.length; i++){
+                    if (sources[i].type == "imgur"){
+                        links.push("http://i.imgur.com/" + sources[i].foreign_key);
+                    }
+                    else if (sources[i].type == "cdphotothread"){
+                        links.push("http://www.chiefdelphi.com/media/img/" + sources[i].details.partial_key);
+                    }
+                }
+                res.end(JSON.stringify(links));
+            });
+        }
+        else {
+            res.end("[]");
+        }
+    });
+
+});
+
 app.post("/getProgressForMatches", util.requireLogin, function(req, res){
     util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
         if (team) {
