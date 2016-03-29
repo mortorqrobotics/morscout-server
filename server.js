@@ -646,6 +646,21 @@ module.exports = function(app, networkSchemas, db) {
         });
     });
 
+    app.post("/getOPRSort", util.requireLogin, function(req, res){
+        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+            if (team){
+                util.request("/event/" + team.currentRegional + "/stats", function(stats, err) {
+                    var oprs = stats.oprs;
+                    if (!err) res.end(JSON.stringify(util.sortObject(oprs)));
+                    else res.end("fail");
+                });
+            }
+            else {
+                res.end("fail");
+            }
+        });
+    });
+
     app.post("/clearScoutingData", util.requireAdmin, function(req, res) {
         Report.remove({
             scoutTeamCode: req.session.user.current_team.id,
