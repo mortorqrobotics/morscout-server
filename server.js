@@ -236,10 +236,9 @@ app.post("/getBAImageLinks", util.requireLogin, function(req, res){
             var teamNumber = req.body.teamNumber;
             var links = [];
             util.request("/team/frc"+teamNumber+"/"+year+"/media", function(sources){
-                console.log("/team/frc"+teamNumber+"/"+year+"/media")
                 for (var i = 0; i < sources.length; i++){
                     if (sources[i].type == "imgur"){
-                        links.push("http://i.imgur.com/" + sources[i].foreign_key);
+                        links.push("http://i.imgur.com/" + sources[i].foreign_key + ".png");
                     }
                     else if (sources[i].type == "cdphotothread"){
                         links.push("http://www.chiefdelphi.com/media/img/" + sources[i].details.partial_key);
