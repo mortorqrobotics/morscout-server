@@ -138,10 +138,15 @@ app.post("/chooseCurrentRegional", util.requireAdmin, function(req, res) {
 
 app.post("/getCurrentRegionalInfo", util.requireLogin, function(req, res) {
     util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
-        var currentRegionalKey = team.currentRegional;
-        util.request("/event/" + currentRegionalKey, function(eventInfo) {
-            res.json(eventInfo);
-        });
+        if (team){
+            var currentRegionalKey = team.currentRegional;
+            util.request("/event/" + currentRegionalKey, function(eventInfo) {
+                res.json(eventInfo);
+            });
+        }
+        else {
+            res.end("fail");
+        }
     });
 });
 
