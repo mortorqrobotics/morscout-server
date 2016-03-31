@@ -401,7 +401,7 @@ exports.getTeamReports = function(scoutTeamCode, teamNumber, reportContext, quer
                 //isPrivate: false,
                 event: query,
                 scoutTeamCode: {$in: teamCodes}
-            }, "data scout team match event", function(err, otherTeamReports) {
+            }, "data scout team match event scoutTeamCode", function(err, otherTeamReports) {
                 if (!err) {
                     //addImagesToReports(otherTeamReports, function(newOtherTeamReports) {
                         allReports.otherTeams = otherTeamReports;

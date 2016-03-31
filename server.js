@@ -454,7 +454,24 @@ module.exports = function(app, networkSchemas, db) {
             }
             util.getTeamReports(req.session.user.current_team.id, req.body.teamNumber, req.body.reportContext, query, function(allReports) {
                 if (allReports) {
-                    res.end(JSON.stringify(allReports));
+                    var otherReports = allReports.otherTeams;
+                    var numDone = 0;
+                    if (otherReports.length > 0){
+                        for (var index = 0; index < otherReports.length; index++)(function(){
+                            var i = index;
+                             util.getTeamInfoForUser(otherReports[i].scoutTeamCode, function(team){
+                                 otherReports[i].scoutTeamCode = team.number;//not technically scoutTeamCode, but i needed to get rid of the real one
+                                 numDone++;
+                                 if (numDone == otherReports.length){
+                                     allReports.otherTeams = otherReports;
+                                     res.end(JSON.stringify(allReports));
+                                 }
+                             });
+                         })();
+                     }
+                     else {
+                         res.end(JSON.stringify(allReports));
+                     }
                 } else {
                     res.end("fail");
                 }
