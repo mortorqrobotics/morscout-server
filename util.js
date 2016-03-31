@@ -388,7 +388,7 @@ exports.getPublicTeams = function(selfTeamCode, cb){
 }
 
 
-exports.getTeamReports = function(scoutTeamCode, teamNumber, reportContext, query, cb) {
+exports.getTeamReports = function(scoutTeamCode, teamNumber, reportContext, query, cb) {//careful, this reveals scoutTeamCode on its own
     var allReports = {
         yourTeam: [],
         otherTeams: []

@@ -242,7 +242,7 @@ module.exports = function(app, networkSchemas, db) {
                         if (sources[i].type == "imgur") {
                             links.push("http://i.imgur.com/" + sources[i].foreign_key + ".png");
                         } else if (sources[i].type == "cdphotothread") {
-                            links.push("http://www.chiefdelphi.com/media/img/" + sources[i].details.partial_key);
+                            links.push("http://www.chiefdelphi.com/media/img/" + sources[i].details.image_partial);
                         }
                     }
                     res.end(JSON.stringify(links));
