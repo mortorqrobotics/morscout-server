@@ -257,29 +257,34 @@ module.exports = function(app, networkSchemas, db) {
     app.post("/getProgressForMatches", util.requireLogin, function(req, res) {
         util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
             if (team) {
-                var matchesLength = req.body.matchesLength;
+                var matchesLength = parseInt(req.body.matchesLength);
                 var done = 0;
                 var progress = {};
-                for (var index = 1; index <= matchesLength; index++)(function() {
-                    var i = index;
-                    var matchNumber = index;
-                    Report.find({
-                        scoutTeamCode: req.session.user.current_team.id,
-                        match: matchNumber,
-                        event: team.currentRegional
-                    }, function(err, reports) {
-                        var teamsReported = [];
-                        reports.forEach(function(report) {
-                            var team = report.team;
-                            if (teamsReported.indexOf(team) < 0) teamsReported.push(team);
+                if (util.isNum(matchesLength)){
+                     for (var index = 1; index <= matchesLength; index++)(function() {
+                        var i = index;
+                        var matchNumber = index;
+                        Report.find({
+                            scoutTeamCode: req.session.user.current_team.id,
+                            match: matchNumber,
+                            event: team.currentRegional
+                        }, function(err, reports) {
+                            var teamsReported = [];
+                            reports.forEach(function(report) {
+                                var team = report.team;
+                                if (teamsReported.indexOf(team) < 0) teamsReported.push(team);
+                            });
+                            done++;
+                            progress[i] = teamsReported.length;
+                            if (done == matchesLength) {
+                                res.end(JSON.stringify(progress));
+                            }
                         });
-                        done++;
-                        progress[i] = teamsReported.length;
-                        if (done == matchesLength) {
-                            res.end(JSON.stringify(progress));
-                        }
-                    });
-                })();
+                    })();
+                }
+                else {
+                    res.end("fail");
+                }
             } else {
                 res.end("fail");
             }
