@@ -78,7 +78,7 @@ function clearDataPoints(teamCode, context, cb) {
 
 //Middleware (Do these work?)
 exports.requireAdmin = function(req, res, next) {
-    if (req.session.user && (req.session.user.current_team.position == "admin" || req.session.user.current_team.scoutCaptain == true)) next();
+    if (req.user && (req.user.current_team.position == "admin" || req.user.current_team.scoutCaptain == true)) next();
     else res.end("fail");
 }
 

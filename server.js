@@ -37,9 +37,9 @@ module.exports = function(imports) {
     app.use(function(req, res, next) {
         if (req.url == "" || req.url == "/") req.url = "/index.html";
         if (req.url.contains(".html")) { //allow css and js to pass
-            if (!req.session.user) {
+            if (!req.user) {
                 res.redirect("http://morteam.com/login?scout");
-            } else if (req.session.user.teams.length == 0) {
+            } else if (req.user.teams.length == 0) {
                 res.redirect("http://morteam.com/void");
             } else if (["/login.html", "/signup.html", "/createteam.html"].contains(req.url)) {
                 res.redirect("/");
@@ -54,7 +54,7 @@ module.exports = function(imports) {
     app.use(express.static(require("path").join(__dirname, "../morscout-web")));
 
     app.post("/validateUser", util.requireLogin, function(req, res) {
-        if (req.session.user._id == req.body.userID) {
+        if (req.user._id == req.body.userID) {
             res.end("success");
         } else {
             res.end("fail");
@@ -69,7 +69,7 @@ module.exports = function(imports) {
     });
 
     app.post("/getRegionalsForTeam", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             if (team) {
                 util.request("/team/frc" + team.number + "/" + req.body.year + "/events", function(events) {
                     if (events) res.json(events);
@@ -83,9 +83,9 @@ module.exports = function(imports) {
 
     app.post("/getInfo", util.requireLogin, function(req, res) {
         User.findOne({
-            _id: req.session.user._id
+            _id: req.user._id
         }, "-password", function(err, user) {
-            util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+            util.getTeamInfoForUser(req.user.current_team.id, function(team) {
                 if (!err && user) {
                     res.end(JSON.stringify({
                         user: user,
@@ -99,7 +99,7 @@ module.exports = function(imports) {
     });
 
     app.post("/chooseCurrentRegional", util.requireAdmin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) { //FIX
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) { //FIX
             if (team && typeof(req.body.eventCode) == "string") {
                 var year = req.body.eventCode.substring(0, 4);
                 util.request("/team/frc" + team.number + "/" + year + "/events", function(events) {
@@ -113,7 +113,7 @@ module.exports = function(imports) {
                         }
                         if (registeredForRegional) {
                             Team.update({
-                                id: req.session.user.current_team.id
+                                id: req.user.current_team.id
                             }, {
                                 currentRegional: req.body.eventCode
                             }, util.handleError(res, function() {
@@ -133,7 +133,7 @@ module.exports = function(imports) {
     });
 
     app.post("/getCurrentRegionalInfo", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             if (team) {
                 var currentRegionalKey = team.currentRegional;
                 util.request("/event/" + currentRegionalKey, function(eventInfo) {
@@ -146,7 +146,7 @@ module.exports = function(imports) {
     });
 
     app.post("/getMatchesForCurrentRegional", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             if (team) {
                 util.request("/event/" + team.currentRegional + "/matches", function(matches) {
                     if (matches !== null && typeof(matches) == "object") {
@@ -155,7 +155,7 @@ module.exports = function(imports) {
                             var i = index;
                             var matchNumber = matches[i].match_number;
                             Report.find({
-                                scoutTeamCode: req.session.user.current_team.id,
+                                scoutTeamCode: req.user.current_team.id,
                                 match: matchNumber,
                                 event: team.currentRegional
                             }, function(err, reports) {
@@ -188,7 +188,7 @@ module.exports = function(imports) {
     });
 
     app.post("/getProgressForPit", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             if (team) {
                 util.request("/event/" + team.currentRegional + "/teams", function(teams) {
                     if (Array.isArray(teams)) {
@@ -201,7 +201,7 @@ module.exports = function(imports) {
                             var i = index;
                             var teamNum = parseInt(teams[i].team_number);
                             Report.find({
-                                scoutTeamCode: req.session.user.current_team.id,
+                                scoutTeamCode: req.user.current_team.id,
                                 team: teamNum,
                                 event: query,
                                 context: "pit"
@@ -229,7 +229,7 @@ module.exports = function(imports) {
     });
 
     app.post("/getBAImageLinks", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             if (team) {
                 var year = team.currentRegional.substring(0, 4);
                 var teamNumber = req.body.teamNumber;
@@ -252,7 +252,7 @@ module.exports = function(imports) {
     });
 
     app.post("/getProgressForMatches", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             if (team) {
                 var matchesLength = parseInt(req.body.matchesLength);
                 var done = 0;
@@ -262,7 +262,7 @@ module.exports = function(imports) {
                         var i = index;
                         var matchNumber = index;
                         Report.find({
-                            scoutTeamCode: req.session.user.current_team.id,
+                            scoutTeamCode: req.user.current_team.id,
                             match: matchNumber,
                             event: team.currentRegional
                         }, function(err, reports) {
@@ -302,7 +302,7 @@ module.exports = function(imports) {
             report.data = JSON.parse(report.data);
         }
         DataPoint.find({
-            teamCode: req.session.user.current_team.id,
+            teamCode: req.user.current_team.id,
             context: report.context
         }).sort("pointNumber").exec(function(err, dataPoints) {
             var orderValid = true;
@@ -316,15 +316,15 @@ module.exports = function(imports) {
                 orderValid = false;
             }
             if (orderValid) {
-                report.scout = req.session.user._id;
+                report.scout = req.user._id;
                 //if (!report.images || report.context == "match") report.images = [];
-                report.scoutTeamCode = req.session.user.current_team.id;
-                util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+                report.scoutTeamCode = req.user.current_team.id;
+                util.getTeamInfoForUser(req.user.current_team.id, function(team) {
                     if (team.currentRegional && (req.body.regional == team.currentRegional)) {
                         report.event = team.currentRegional;
                         //report.isPrivate = false; //team.showScoutingInfo;
                         // Report.find({
-                        //     scoutTeamCode: req.session.user.current_team.id
+                        //     scoutTeamCode: req.user.current_team.id
                         // }, function(err, reports) {
                         //     if (err) {
                         //         res.end("fail");
@@ -355,7 +355,7 @@ module.exports = function(imports) {
     });
 
     app.post("/getMatchInfo", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             var currentRegional = team.currentRegional;
             util.request("/match/" + currentRegional + "_qm" + req.body.match, function(matchInfo) {
                 if (matchInfo) res.end(JSON.stringify(matchInfo));
@@ -390,10 +390,10 @@ module.exports = function(imports) {
     });
 
     app.post("/getAllReports", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             if (team) {
                 Report.find({
-                    scoutTeamCode: req.session.user.current_team.id,
+                    scoutTeamCode: req.user.current_team.id,
                     event: team.currentRegional
                 }, "_id data scout team match event context").populate("scout", "firstname lastname").exec(function(err, reports) {
                     if (!err) {
@@ -410,19 +410,19 @@ module.exports = function(imports) {
 
 
     app.post("/getMatchReports", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             var allReports = {
                 yourTeam: [],
                 otherTeams: []
             };
             if (team) {
-                util.getPublicTeams(req.session.user.current_team.id, function(teamCodes) {
+                util.getPublicTeams(req.user.current_team.id, function(teamCodes) {
                     Report.find({
                         context: "match",
                         match: req.body.match,
                         team: req.body.team,
                         event: team.currentRegional,
-                        scoutTeamCode: req.session.user.current_team.id
+                        scoutTeamCode: req.user.current_team.id
                     }, "_id data scout team match event").populate("scout", "firstname lastname").exec(util.handleError(res, function(yourReports) {
                         allReports.yourTeam = yourReports;
                         Report.find({
@@ -447,14 +447,14 @@ module.exports = function(imports) {
     });
 
     app.post("/getTeamReports", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             var regional = team.currentRegional;
             var query = regional;
             if (req.body.reportContext == "pit") {
                 var year = regional.substring(0, 4);
                 query = new RegExp("^" + year + "[a-zA-Z]+\\d*$", "i");
             }
-            util.getTeamReports(req.session.user.current_team.id, req.body.teamNumber, req.body.reportContext, query, function(allReports) {
+            util.getTeamReports(req.user.current_team.id, req.body.teamNumber, req.body.reportContext, query, function(allReports) {
                 if (allReports) {
                     var otherReports = allReports.otherTeams;
                     var numDone = 0;
@@ -482,12 +482,12 @@ module.exports = function(imports) {
     });
 
     /*app.post("/getPitReports", util.requireLogin, function(req, res){
-    	util.getTeamInfoForUser(req.session.user.current_team.id, function(team){
+    	util.getTeamInfoForUser(req.user.current_team.id, function(team){
     		if (team){
     		    Report.find({
     		        context: "pit",
     		        team: req.body.team,
-    		        scoutTeamCode: req.session.user.current_team.id
+    		        scoutTeamCode: req.user.current_team.id
     		    }, util.handleError(res, function(reports){
     		        var reportDone = 0;
     		        for (var i = 0; i < reports.length; i++){
@@ -525,16 +525,16 @@ module.exports = function(imports) {
     app.post("/setScoutForm", util.requireAdmin, function(req, res) { //Set and edit scout form
         var allDataPoints = req.body.dataPoints; //Array
         for (var i = 0; i < allDataPoints.length; i++) {
-            allDataPoints[i].teamCode = req.session.user.current_team.id;
+            allDataPoints[i].teamCode = req.user.current_team.id;
             allDataPoints[i].context = req.body.context;
             allDataPoints[i].pointNumber = i;
         }
         // Report.count({
-        //     scoutTeamCode: req.session.user.current_team.id,
+        //     scoutTeamCode: req.user.current_team.id,
         //     context: req.body.context
         // }, function(err, count) {
         //     if (!err) {
-        util.addDataPoints(allDataPoints, req.session.user.current_team.id, req.body.context, function(formSet) { //also removes previous data points
+        util.addDataPoints(allDataPoints, req.user.current_team.id, req.body.context, function(formSet) { //also removes previous data points
             res.end(util.respond(formSet));
         });
         // } else {
@@ -544,7 +544,7 @@ module.exports = function(imports) {
     });
 
     app.post("/getTeamListForRegional", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             if (team) {
                 util.request("/event/" + team.currentRegional + "/teams", function(teams) {
                     if (Array.isArray(teams)) { //arr
@@ -560,7 +560,7 @@ module.exports = function(imports) {
     });
     //Consider merging ^ and v
     app.post("/getRankingsForRegional", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             if (team) {
                 util.request("/event/" + team.currentRegional + "/rankings", function(rankings) {
                     if (typeof(rankings) == "object") { //arr
@@ -576,7 +576,7 @@ module.exports = function(imports) {
     });
 
     app.post("/sendFeedback", function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             if (team) {
                 util.sendEmail("support@morscout.com", "Feedback from team " + team.number, req.body.content, function(didSend) {
                     res.end(util.respond(didSend));
@@ -588,7 +588,7 @@ module.exports = function(imports) {
     });
 
     app.post("/getSortedTeamAvgs", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             if (team) {
                 util.request("/event/" + team.currentRegional + "/teams", function(teams) {
                     if (Array.isArray(teams)) {
@@ -598,7 +598,7 @@ module.exports = function(imports) {
                             var teamNumber = teams[i].team_number;
                             Report.find({
                                 team: teamNumber,
-                                scoutTeamCode: req.session.user.current_team.id,
+                                scoutTeamCode: req.user.current_team.id,
                                 event: team.currentRegional
                             }, function(err, reports) {
                                 var values = [];
@@ -632,7 +632,7 @@ module.exports = function(imports) {
     });
 
     app.post("/getTeamPrevEventStats", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             util.request("/team/frc" + req.body.teamNumber + "/" + team.currentRegional.substring(0, 4) + "/events", function(allEvents) {
                 var eventStats = {};
                 var events = [];
@@ -666,7 +666,7 @@ module.exports = function(imports) {
     });
 
     app.post("/getOPRSort", util.requireLogin, function(req, res){
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             if (team){
                 util.request("/event/" + team.currentRegional + "/stats", function(stats, err) {
                     var oprs = stats.oprs;
@@ -682,7 +682,7 @@ module.exports = function(imports) {
 
     app.post("/clearScoutingData", util.requireAdmin, function(req, res) {
         Report.remove({
-            scoutTeamCode: req.session.user.current_team.id,
+            scoutTeamCode: req.user.current_team.id,
             context: req.body.context
         }, function(err) {
             res.end(util.respond(!err));
@@ -692,7 +692,7 @@ module.exports = function(imports) {
     app.post("/setDataStatus", util.requireAdmin, function(req, res) {
         var isPrivate = (req.body.status == "private");
         Team.update({
-            id: req.session.user.current_team.id
+            id: req.user.current_team.id
         }, {
             isPrivate: isPrivate
         }, function(err) {
@@ -701,7 +701,7 @@ module.exports = function(imports) {
     });
 
     app.post("/getDataStatus", util.requireAdmin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             if (team) {
                 res.end(team.isPrivate.toString());
             } else {
@@ -751,7 +751,7 @@ module.exports = function(imports) {
 
     app.post("/getScoutForm", util.requireLogin, function(req, res) { //get?
         DataPoint.find({
-            teamCode: req.session.user.current_team.id,
+            teamCode: req.user.current_team.id,
             context: req.body.context
         }).sort("pointNumber").exec(function(err, dataPoints) { //Gets match and pit forms
             if (!err && dataPoints.length != 0) {
@@ -760,11 +760,11 @@ module.exports = function(imports) {
                 fs.readFile(require("path").join(__dirname, "defaultForms/2016.json"), function(err, forms) {
                     var allDataPoints = JSON.parse(forms.toString())[req.body.context];
                     for (var i = 0; i < allDataPoints.length; i++) {
-                        allDataPoints[i].teamCode = req.session.user.current_team.id;
+                        allDataPoints[i].teamCode = req.user.current_team.id;
                         allDataPoints[i].context = req.body.context;
                         allDataPoints[i].pointNumber = i;
                     }
-                    util.addDataPoints(allDataPoints, req.session.user.current_team.id, req.body.context, function(formSet) {
+                    util.addDataPoints(allDataPoints, req.user.current_team.id, req.body.context, function(formSet) {
                         if (formSet) res.end(JSON.stringify(JSON.parse(forms.toString())[req.body.context]));
                         else res.end("fail");
                     });
@@ -785,7 +785,7 @@ module.exports = function(imports) {
 
     app.post("/assignTask", util.requireAdmin, function(req, res) {
         //req.body.scoutID is the _id of the user assigned the task
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             var teamSection = parseInt(req.body.teamSection);
             if (team && parseInt(req.body.startMatch) > 0 && parseInt(req.body.endMatch) > 0 && parseInt(req.body.startMatch) <= parseInt(req.body.endMatch) && teamSection >= 1 && teamSection <= 3 && (req.body.alliance == "blue" || req.body.alliance == "red")) {
                 Assignment.find({
@@ -812,7 +812,7 @@ module.exports = function(imports) {
                             alliance: req.body.alliance,
                             teamSection: teamSection,
                             eventCode: team.currentRegional,
-                            assignedBy: req.session.user._id
+                            assignedBy: req.user._id
                         }, function(err) {
                             res.end(util.respond(!err));
                         });
@@ -827,7 +827,7 @@ module.exports = function(imports) {
     });
 
     app.post("/showTasks", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             if (team) {
                 Report.find({
                     scout: req.body.scoutID,
@@ -911,7 +911,7 @@ module.exports = function(imports) {
     });
 
     app.post("/getTeammatesInfo", util.requireLogin, function(req, res) {
-        util.getTeammatesInfo(req.session.user.current_team.id, function(err, users) { //will be team specific soon
+        util.getTeammatesInfo(req.user.current_team.id, function(err, users) { //will be team specific soon
             res.end(JSON.stringify(users));
         });
     });
@@ -927,16 +927,16 @@ module.exports = function(imports) {
     });
 
     app.post("/setMatchStrategy", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             Strategy.remove({
                 eventCode: team.currentRegional,
-                teamCode: req.session.user.current_team.id,
+                teamCode: req.user.current_team.id,
                 matchNumber: parseInt(req.body.match)
             }, function(err) {
                 if (!err) {
                     Strategy.create({
                         eventCode: team.currentRegional,
-                        teamCode: req.session.user.current_team.id,
+                        teamCode: req.user.current_team.id,
                         matchNumber: parseInt(req.body.match),
                         strategy: util.sec(req.body.strategy)
                     }, function(err) {
@@ -950,10 +950,10 @@ module.exports = function(imports) {
     });
 
     app.post("/getMatchStrategy", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             Strategy.findOne({
                 eventCode: team.currentRegional,
-                teamCode: req.session.user.current_team.id,
+                teamCode: req.user.current_team.id,
                 matchNumber: parseInt(req.body.match)
             }, function(err, strategy) {
                 if (!err) res.end(JSON.stringify(strategy));
@@ -963,10 +963,10 @@ module.exports = function(imports) {
     });
 
     app.post("/getAllMatchStrategies", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             Strategy.find({
                 eventCode: team.currentRegional,
-                teamCode: req.session.user.current_team.id
+                teamCode: req.user.current_team.id
             }, function(err, strategies) {
                 if (!err) res.end(JSON.stringify(strategies));
                 else res.end("fail");
@@ -975,14 +975,14 @@ module.exports = function(imports) {
     });
 
     app.post("/addImage", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             if (team) {
                 var imagePath = util.randomStr(32) + image.name.split(".")[image.name.split(".").length - 1];
                 var imageBuffer = image.buffer;
                 Image.create({
                     imagePath: imagePath,
                     year: parseInt(team.currentRegional.substring(0, 4)),
-                    scoutTeamCode: req.session.user.current_team.id,
+                    scoutTeamCode: req.user.current_team.id,
                     team: parseInt(req.body.team)
                 }, function(err) {
                     if (!err) {
@@ -1004,12 +1004,12 @@ module.exports = function(imports) {
     });
 
     app.post("/getImages", util.requireLogin, function(req, res) {
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             if (team) {
                 var imageBuffers = [];
                 Image.find({
                     year: parseInt(team.currentRegional.substring(0, 4)),
-                    scoutTeamCode: req.session.user.current_team.id,
+                    scoutTeamCode: req.user.current_team.id,
                     team: parseInt(req.body.team)
                 }, function(err, images) {
                     var done = 0;
@@ -1031,7 +1031,7 @@ module.exports = function(imports) {
     });
 
     app.post("/getPastRegionalResults", function(req, res) { //try to fix speed
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             if (team) {
                 util.request("/team/frc" + req.body.teamNumber + "/" + team.currentRegional.substring(0, 4) + "/events", function(events, err) {
                     if (!err) {
@@ -1064,7 +1064,7 @@ module.exports = function(imports) {
     });
 
     app.post("/getUserStats", util.requireLogin, function(req, res) { //add for whole team at once too
-        util.getTeamInfoForUser(req.session.user.current_team.id, function(team) {
+        util.getTeamInfoForUser(req.user.current_team.id, function(team) {
             if (team) {
                 util.getUserStats(req.body.userID, team.currentRegional, function(err, stats) {
                     if (stats != {}) {
