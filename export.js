@@ -1,6 +1,6 @@
-module.exports = function(app, schemas, networkSchemas, db) {
+module.exports = function(app, imports) {
 
-	var util = require("./util.js")(db, networkSchemas);
+	var util = imports.util;
 
 	app.get("/exportMatchData", util.requireLogin, function(req, res) {
 		sendCsv("match", req, res);
@@ -11,7 +11,7 @@ module.exports = function(app, schemas, networkSchemas, db) {
 	});
 
 	function sendCsv(context, req, res) {
-		schemas.Report.find({
+		imports.models.Report.find({
 	        scoutTeamCode: req.session.user.current_team.id,
 	        context: context
 	    }, function(err, reports) {

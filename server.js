@@ -1,27 +1,24 @@
-module.exports = function(app, networkSchemas, db) {
+module.exports = function(imports) {
 
-    var mongoose = require("mongoose");
-    var util = require("./util.js")(db, networkSchemas);
+    imports = require("./initImports")(imports);
+
+    var mongoose = imports.modules.mongoose;
+    var util = imports.util;
     var fs = require("fs");
-    var express = require("express");
+    var express = imports.modules.express;
+
+    var app = express();
 
     // var db = mongoose.createConnection('mongodb://localhost:27017/morscout');
 
-    var schemas = {
-        Assignment: require('./schemas/Assignment.js')(db),
-        DataPoint: require('./schemas/DataPoint.js')(db),
-        Image: require('./schemas/Image.js')(db),
-        Report: require('./schemas/Report.js')(db),
-        Strategy: require('./schemas/Strategy.js')(db)
-    };
-
-    for (var key in networkSchemas) {
-        schemas[key] = networkSchemas[key];
-    }
-
-    for (key in schemas) {
-        eval("var " + key + " = schemas." + key + ";");
-    }
+    var DataPoint = imports.models.DataPoint;
+    var Report = imports.models.Report;
+    var Assignment = imports.models.Assignment;
+    var Strategy = imports.models.Strategy;
+    var Image = imports.models.Image;
+    var User = imports.models.User;
+    var Team = imports.models.Team;
+    var Subdivision = imports.models.Subdivision;
 
     // what is wrong with this v
     //TODO: FIX THIS MESS
@@ -64,7 +61,7 @@ module.exports = function(app, networkSchemas, db) {
         }
     });
 
-    require("./export.js")(app, schemas, networkSchemas, db);
+    require("./export.js")(app, imports);
 
     app.post("/logout", util.requireLogin, function(req, res) {
         req.session.destroy();
@@ -1083,5 +1080,7 @@ module.exports = function(app, networkSchemas, db) {
     });
 
     // TODO; add 404
+
+    return app;
 
 }

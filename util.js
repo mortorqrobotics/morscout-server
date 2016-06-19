@@ -1,20 +1,18 @@
-module.exports = function(db, networkSchemas) {
+module.exports = function(imports) {
 var exports = {};
 
-var mongoose = require("mongoose");
+var mongoose = imports.modules.mongoose;
 var fs = require("fs");
 var http = require("http");
 
-var DataPoint = require("./schemas/DataPoint.js")(db);
-var Report = require("./schemas/Report.js")(db);
-var Assignment = require("./schemas/Assignment.js")(db);
-var Strategy = require("./schemas/Strategy.js")(db);
-var Image = require("./schemas/Image.js")(db);
-
-for (key in networkSchemas){
-    eval("var " + key + " = networkSchemas." + key + ";");
-}
-
+var DataPoint = imports.models.DataPoint;
+var Report = imports.models.Report;
+var Assignment = imports.models.Assignment;
+var Strategy = imports.models.Strategy;
+var Image = imports.models.Image;
+var User = imports.models.User;
+var Team = imports.models.Team;
+var Subdivision = imports.models.Subdivision;
 
 /* usage:
 
