@@ -83,7 +83,7 @@ exports.requireAdmin = function(req, res, next) {
 }
 
 exports.requireLogin = function(req, res, next) {
-        if (req.session.user) next();
+        if (req.user) next();
         else res.end("fail");
     }
     //^^^^^
