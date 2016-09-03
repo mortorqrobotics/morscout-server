@@ -12,7 +12,7 @@ module.exports = function(app, imports) {
 
 	function sendCsv(context, req, res) {
 		imports.models.Report.find({
-	        scoutTeamCode: req.session.user.current_team.id,
+	        scoutTeam: req.user.team,
 	        context: context
 	    }, function(err, reports) {
 			if(err) {
