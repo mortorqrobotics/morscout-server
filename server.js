@@ -302,7 +302,7 @@ module.exports = function(imports) {
             report.data = JSON.parse(report.data);
         }
         DataPoint.find({
-            teamCode: req.user.team,
+            team: req.user.team,
             context: report.context
         }).sort("pointNumber").exec(function(err, dataPoints) {
             var orderValid = true;
@@ -416,7 +416,7 @@ module.exports = function(imports) {
                 otherTeams: []
             };
             if (team) {
-                util.getPublicTeams(req.user.team, function(teamCodes) {
+                util.getPublicTeams(req.user.team, function(teams) {
                     Report.find({
                         context: "match",
                         match: req.body.match,
@@ -432,7 +432,7 @@ module.exports = function(imports) {
                             event: team.currentRegional,
                             //isPrivate: false,
                             scoutTeam: {
-                                $in: teamCodes
+                                $in: teams
                             }
                         }, "data scout team match event", util.handleError(res, function(otherReports) {
                             allReports.otherTeams = otherReports;
@@ -525,7 +525,7 @@ module.exports = function(imports) {
     app.post("/setScoutForm", util.requireAdmin, function(req, res) { //Set and edit scout form
         var allDataPoints = req.body.dataPoints; //Array
         for (var i = 0; i < allDataPoints.length; i++) {
-            allDataPoints[i].teamCode = req.user.team;
+            allDataPoints[i].team = req.user.team;
             allDataPoints[i].context = req.body.context;
             allDataPoints[i].pointNumber = i;
         }
@@ -751,7 +751,7 @@ module.exports = function(imports) {
 
     app.post("/getScoutForm", util.requireLogin, function(req, res) { //get?
         DataPoint.find({
-            teamCode: req.user.team,
+            team: req.user.team,
             context: req.body.context
         }).sort("pointNumber").exec(function(err, dataPoints) { //Gets match and pit forms
             if (!err && dataPoints.length != 0) {
@@ -760,7 +760,7 @@ module.exports = function(imports) {
                 fs.readFile(require("path").join(__dirname, "defaultForms/2016.json"), function(err, forms) {
                     var allDataPoints = JSON.parse(forms.toString())[req.body.context];
                     for (var i = 0; i < allDataPoints.length; i++) {
-                        allDataPoints[i].teamCode = req.user.team;
+                        allDataPoints[i].team = req.user.team;
                         allDataPoints[i].context = req.body.context;
                         allDataPoints[i].pointNumber = i;
                     }
@@ -930,13 +930,13 @@ module.exports = function(imports) {
         util.getTeamInfoForUser(req.user.team, function(team) {
             Strategy.remove({
                 eventCode: team.currentRegional,
-                teamCode: req.user.team,
+                team: req.user.team,
                 matchNumber: parseInt(req.body.match)
             }, function(err) {
                 if (!err) {
                     Strategy.create({
                         eventCode: team.currentRegional,
-                        teamCode: req.user.team,
+                        team: req.user.team,
                         matchNumber: parseInt(req.body.match),
                         strategy: util.sec(req.body.strategy)
                     }, function(err) {
@@ -953,7 +953,7 @@ module.exports = function(imports) {
         util.getTeamInfoForUser(req.user.team, function(team) {
             Strategy.findOne({
                 eventCode: team.currentRegional,
-                teamCode: req.user.team,
+                team: req.user.team,
                 matchNumber: parseInt(req.body.match)
             }, function(err, strategy) {
                 if (!err) res.end(JSON.stringify(strategy));
@@ -966,7 +966,7 @@ module.exports = function(imports) {
         util.getTeamInfoForUser(req.user.team, function(team) {
             Strategy.find({
                 eventCode: team.currentRegional,
-                teamCode: req.user.team
+                team: req.user.team
             }, function(err, strategies) {
                 if (!err) res.end(JSON.stringify(strategies));
                 else res.end("fail");
