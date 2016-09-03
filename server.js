@@ -369,7 +369,7 @@ module.exports = function(imports) {
         User.update({
             _id: req.body.userID
         }, {
-            "current_team.scoutCaptain": isSC
+            scoutCaptain: isSC
         }, function(err) {
             res.end(util.respond(!err));
         });
@@ -380,7 +380,7 @@ module.exports = function(imports) {
             _id: req.body.userID
         }, function(err, user) {
             if (user && !err) {
-                if (user.current_team.scoutCaptain) res.end("true");
+                if (user.scoutCaptain) res.end("true");
                 else res.end("false");
             } else {
                 res.end("fail");
