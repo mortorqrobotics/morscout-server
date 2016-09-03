@@ -113,7 +113,7 @@ module.exports = function(imports) {
                         }
                         if (registeredForRegional) {
                             Team.update({
-                                id: req.user.team
+                                _id: req.user.team
                             }, {
                                 currentRegional: req.body.eventCode
                             }, util.handleError(res, function() {
@@ -692,7 +692,7 @@ module.exports = function(imports) {
     app.post("/setDataStatus", util.requireAdmin, function(req, res) {
         var isPrivate = (req.body.status == "private");
         Team.update({
-            id: req.user.team
+            _id: req.user.team
         }, {
             isPrivate: isPrivate
         }, function(err) {

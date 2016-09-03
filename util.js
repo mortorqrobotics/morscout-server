@@ -364,12 +364,12 @@ exports.getUserStats = function(userID, currentRegional, cb) {
 function getPublicTeams(selfteam, cb){
     Team.find({
         isPrivate: false,
-        id: {$ne: selfteam}
+        _id: {$ne: selfteam}
     }, function(err, teams){
         if (!err){
             var teams = [];
             teams.forEach(function(team){
-                teams.push(team.id);
+                teams.push(team._id);
             });
             cb(teams);
         }
@@ -466,7 +466,7 @@ function isDef(v){
 
 exports.getTeamInfoForUser = function(team, cb) {
     Team.findOne({
-        id: team
+        _id: team
     }, function(err, team) {
         if (isDef(team) && (!isDef(team.currentRegional) || team.currentRegional.trim() == "")){
             var date = new Date();
@@ -475,7 +475,7 @@ exports.getTeamInfoForUser = function(team, cb) {
                 var defKey = events[0].key;
                 if (isDef(defKey)){
                     Team.update({
-                        id: team
+                        _id: team
                     },{
                         currentRegional: defKey
                     }, function(err, newTeam){
