@@ -66,9 +66,9 @@ exports.validateSession = function(user, token, cb) {
     });
 };
 
-function clearDataPoints(teamCode, context, cb) {
+function clearDataPoints(team, context, cb) {
     DataPoint.remove({
-        teamCode: teamCode,
+        team: team,
         context: context
     }, function() {
         cb();
@@ -98,11 +98,11 @@ exports.isNum = function(str){
 
 
 //Useful functions that have NOT been tested
-exports.addDataPoints = function(dataPoints, teamCode, context, cb) {
+exports.addDataPoints = function(dataPoints, team, context, cb) {
     var done = 0;
     var allPointsValid = true;
     var ended = false;
-    clearDataPoints(teamCode, context, function() { //clear current data points
+    clearDataPoints(team, context, function() { //clear current data points
         for (var i = 0; i < dataPoints.length; i++) {
             if (allPointsValid) {
                 var dataPoint = dataPoints[i];
@@ -115,7 +115,7 @@ exports.addDataPoints = function(dataPoints, teamCode, context, cb) {
                     (dataPoint.context != "match" && dataPoint.context != "pit") ||
                     (~allNames.indexOf(dataPoint.name))) {
                     allPointsValid = false;
-                    clearDataPoints(teamCode, context, function() { //if one data point is corrupt the form is rejected and all points are cleared
+                    clearDataPoints(team, context, function() { //if one data point is corrupt the form is rejected and all points are cleared
                     });
                 } else {
                     allNames.push(dataPoint.name);
@@ -129,7 +129,7 @@ exports.addDataPoints = function(dataPoints, teamCode, context, cb) {
                             }
                         } else {
                             allPointsValid = false;
-                            clearDataPoints(teamCode, context, function() { //if one data point is corrupt the form is rejected and all points are cleared
+                            clearDataPoints(team, context, function() { //if one data point is corrupt the form is rejected and all points are cleared
                             });
                         }
                     });
@@ -257,7 +257,7 @@ function validateReport(report, cb) {//CHECK for empty values and such
     if (context == "pit" || context == "match") {
         DataPoint.find({
             context: context,
-            teamCode: report.scoutTeam
+            team: report.scoutTeam
         }, function(err, dataPoints) {
             for(var i = 0; i < dataPoints.length; i++) {
                 var dataPoint = dataPoints[i];
@@ -297,9 +297,9 @@ function validateReport(report, cb) {//CHECK for empty values and such
 
 //exports.validateReport = validateReport();
 
-exports.getTeammatesInfo = function(teamCode, cb) { //right now, team is same, later it won't be
+exports.getTeammatesInfo = function(team, cb) { //right now, team is same, later it won't be
     User.find({
-        "current_team.id": teamCode
+        team: team
     }, "-password", function(err, users) {
         if (!err) {
             cb(null, users);
@@ -361,17 +361,17 @@ exports.getUserStats = function(userID, currentRegional, cb) {
     });
 }
 
-function getPublicTeams(selfTeamCode, cb){
+function getPublicTeams(selfteam, cb){
     Team.find({
         isPrivate: false,
-        id: {$ne: selfTeamCode}
+        id: {$ne: selfteam}
     }, function(err, teams){
         if (!err){
-            var teamCodes = [];
+            var teams = [];
             teams.forEach(function(team){
-                teamCodes.push(team.id);
+                teams.push(team.id);
             });
-            cb(teamCodes);
+            cb(teams);
         }
         else {
             cb(false);
@@ -379,9 +379,9 @@ function getPublicTeams(selfTeamCode, cb){
     });
 }
 //Merge ^^vv
-exports.getPublicTeams = function(selfTeamCode, cb){
-    getPublicTeams(selfTeamCode, function(teamCodes){
-        cb(teamCodes);
+exports.getPublicTeams = function(selfteam, cb){
+    getPublicTeams(selfteam, function(teams){
+        cb(teams);
     });
 }
 
@@ -392,13 +392,13 @@ exports.getTeamReports = function(scoutTeam, teamNumber, reportContext, query, c
         otherTeams: []
     };
     if (reportContext == "match" || reportContext == "pit") {
-        getPublicTeams(scoutTeam, function(teamCodes){
+        getPublicTeams(scoutTeam, function(teams){
             Report.find({
                 team: teamNumber,
                 context: reportContext,
                 //isPrivate: false,
                 event: query,
-                scoutTeam: {$in: teamCodes}
+                scoutTeam: {$in: teams}
             }, "data scout team match event scoutTeam", function(err, otherTeamReports) {
                 if (!err) {
                     //addImagesToReports(otherTeamReports, function(newOtherTeamReports) {
@@ -464,9 +464,9 @@ function isDef(v){
     return (v !== null && typeof(v) != "undefined");
 }
 
-exports.getTeamInfoForUser = function(teamCode, cb) {
+exports.getTeamInfoForUser = function(team, cb) {
     Team.findOne({
-        id: teamCode
+        id: team
     }, function(err, team) {
         if (isDef(team) && (!isDef(team.currentRegional) || team.currentRegional.trim() == "")){
             var date = new Date();
@@ -475,7 +475,7 @@ exports.getTeamInfoForUser = function(teamCode, cb) {
                 var defKey = events[0].key;
                 if (isDef(defKey)){
                     Team.update({
-                        id: teamCode
+                        id: team
                     },{
                         currentRegional: defKey
                     }, function(err, newTeam){
