@@ -155,7 +155,7 @@ module.exports = function(imports) {
                             var i = index;
                             var matchNumber = matches[i].match_number;
                             Report.find({
-                                scoutTeamCode: req.user.team,
+                                scoutTeam: req.user.team,
                                 match: matchNumber,
                                 event: team.currentRegional
                             }, function(err, reports) {
@@ -201,7 +201,7 @@ module.exports = function(imports) {
                             var i = index;
                             var teamNum = parseInt(teams[i].team_number);
                             Report.find({
-                                scoutTeamCode: req.user.team,
+                                scoutTeam: req.user.team,
                                 team: teamNum,
                                 event: query,
                                 context: "pit"
@@ -262,7 +262,7 @@ module.exports = function(imports) {
                         var i = index;
                         var matchNumber = index;
                         Report.find({
-                            scoutTeamCode: req.user.team,
+                            scoutTeam: req.user.team,
                             match: matchNumber,
                             event: team.currentRegional
                         }, function(err, reports) {
@@ -318,13 +318,13 @@ module.exports = function(imports) {
             if (orderValid) {
                 report.scout = req.user._id;
                 //if (!report.images || report.context == "match") report.images = [];
-                report.scoutTeamCode = req.user.team;
+                report.scoutTeam = req.user.team;
                 util.getTeamInfoForUser(req.user.team, function(team) {
                     if (team.currentRegional && (req.body.regional == team.currentRegional)) {
                         report.event = team.currentRegional;
                         //report.isPrivate = false; //team.showScoutingInfo;
                         // Report.find({
-                        //     scoutTeamCode: req.user.team
+                        //     scoutTeam: req.user.team
                         // }, function(err, reports) {
                         //     if (err) {
                         //         res.end("fail");
@@ -393,7 +393,7 @@ module.exports = function(imports) {
         util.getTeamInfoForUser(req.user.team, function(team) {
             if (team) {
                 Report.find({
-                    scoutTeamCode: req.user.team,
+                    scoutTeam: req.user.team,
                     event: team.currentRegional
                 }, "_id data scout team match event context").populate("scout", "firstname lastname").exec(function(err, reports) {
                     if (!err) {
@@ -422,7 +422,7 @@ module.exports = function(imports) {
                         match: req.body.match,
                         team: req.body.team,
                         event: team.currentRegional,
-                        scoutTeamCode: req.user.team
+                        scoutTeam: req.user.team
                     }, "_id data scout team match event").populate("scout", "firstname lastname").exec(util.handleError(res, function(yourReports) {
                         allReports.yourTeam = yourReports;
                         Report.find({
@@ -431,7 +431,7 @@ module.exports = function(imports) {
                             team: req.body.team,
                             event: team.currentRegional,
                             //isPrivate: false,
-                            scoutTeamCode: {
+                            scoutTeam: {
                                 $in: teamCodes
                             }
                         }, "data scout team match event", util.handleError(res, function(otherReports) {
@@ -461,8 +461,8 @@ module.exports = function(imports) {
                     if (otherReports.length > 0){
                         for (var index = 0; index < otherReports.length; index++)(function(){
                             var i = index;
-                             util.getTeamInfoForUser(otherReports[i].scoutTeamCode, function(team){
-                                 otherReports[i].scoutTeamCode = team.number;//not technically scoutTeamCode, but i needed to get rid of the real one
+                             util.getTeamInfoForUser(otherReports[i].scoutTeam, function(team){
+                                 otherReports[i].scoutTeam = team.number;//not technically scoutTeam, but i needed to get rid of the real one
                                  numDone++;
                                  if (numDone == otherReports.length){
                                      allReports.otherTeams = otherReports;
@@ -487,7 +487,7 @@ module.exports = function(imports) {
     		    Report.find({
     		        context: "pit",
     		        team: req.body.team,
-    		        scoutTeamCode: req.user.team
+    		        scoutTeam: req.user.team
     		    }, util.handleError(res, function(reports){
     		        var reportDone = 0;
     		        for (var i = 0; i < reports.length; i++){
@@ -530,7 +530,7 @@ module.exports = function(imports) {
             allDataPoints[i].pointNumber = i;
         }
         // Report.count({
-        //     scoutTeamCode: req.user.team,
+        //     scoutTeam: req.user.team,
         //     context: req.body.context
         // }, function(err, count) {
         //     if (!err) {
@@ -598,7 +598,7 @@ module.exports = function(imports) {
                             var teamNumber = teams[i].team_number;
                             Report.find({
                                 team: teamNumber,
-                                scoutTeamCode: req.user.team,
+                                scoutTeam: req.user.team,
                                 event: team.currentRegional
                             }, function(err, reports) {
                                 var values = [];
@@ -682,7 +682,7 @@ module.exports = function(imports) {
 
     app.post("/clearScoutingData", util.requireAdmin, function(req, res) {
         Report.remove({
-            scoutTeamCode: req.user.team,
+            scoutTeam: req.user.team,
             context: req.body.context
         }, function(err) {
             res.end(util.respond(!err));
@@ -982,7 +982,7 @@ module.exports = function(imports) {
                 Image.create({
                     imagePath: imagePath,
                     year: parseInt(team.currentRegional.substring(0, 4)),
-                    scoutTeamCode: req.user.team,
+                    scoutTeam: req.user.team,
                     team: parseInt(req.body.team)
                 }, function(err) {
                     if (!err) {
@@ -1009,7 +1009,7 @@ module.exports = function(imports) {
                 var imageBuffers = [];
                 Image.find({
                     year: parseInt(team.currentRegional.substring(0, 4)),
-                    scoutTeamCode: req.user.team,
+                    scoutTeam: req.user.team,
                     team: parseInt(req.body.team)
                 }, function(err, images) {
                     var done = 0;
