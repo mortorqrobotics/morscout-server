@@ -4,7 +4,7 @@ module.exports = function(imports) {
 
     var imageSchema = new Schema({
 	    imagePath: {type: String, required: true},
-        scoutTeamCode: {type: String, required: true},
+        scoutTeam: {type: Schema.Types.ObjectId, ref: "Team", required: true},
         team: {type: String, required: true},
         year: {type: Number, required: true}
     });

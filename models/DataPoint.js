@@ -6,7 +6,7 @@ module.exports = function(imports) {
 	    name: {type: String, required: true},//prov
 	    type: {type: String, required: true},//number, text, radiobutton, dropdown, checkbox, label //prov
 	    context: {type: String, required: true},//pit or match
-	    teamCode: {type: String, required: true},
+	    team: {type: Schema.Types.ObjectId, ref: "Team", required: true},
 	    pointNumber: {type: Number, required: true},
 	    min: {type: Number, required: false}, //prov
 	    max: {type: Number, required: false}, //prov

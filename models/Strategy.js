@@ -4,7 +4,7 @@ module.exports = function(imports) {
 
     var strategySchema = new Schema({
         eventCode: {type: String, required: true},
-        teamCode: {type: String, required: true},
+        team: {type: Schema.Types.ObjectId, ref: "Team", required: true},
         matchNumber: {type: Number, required: true},
         strategy: {type: String, required: true}
     });
