@@ -39,7 +39,7 @@ module.exports = function(imports) {
         if (req.url.contains(".html")) { //allow css and js to pass
             if (!req.user) {
                 res.redirect("http://morteam.com/login?scout");
-            } else if (req.user.teams.length == 0) {
+            } else if (!req.user.team) {
                 res.redirect("http://morteam.com/void");
             } else if (["/login.html", "/signup.html", "/createteam.html"].contains(req.url)) {
                 res.redirect("/");
@@ -103,7 +103,7 @@ module.exports = function(imports) {
             if (team && typeof(req.body.eventCode) == "string") {
                 var year = req.body.eventCode.substring(0, 4);
                 util.request("/team/frc" + team.number + "/" + year + "/events", function(events) {
-                    if (typeof(events) == "object" && events.length > 0) { //array
+                    if (events && typeof(events) == "object" && events.length > 0) { //array
                         for (var i = 0; i < events.length; i++) {
                             var registeredForRegional = false;
                             if (req.body.eventCode == events[i].key) {
