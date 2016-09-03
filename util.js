@@ -257,7 +257,7 @@ function validateReport(report, cb) {//CHECK for empty values and such
     if (context == "pit" || context == "match") {
         DataPoint.find({
             context: context,
-            teamCode: report.scoutTeamCode
+            teamCode: report.scoutTeam
         }, function(err, dataPoints) {
             for(var i = 0; i < dataPoints.length; i++) {
                 var dataPoint = dataPoints[i];
@@ -386,20 +386,20 @@ exports.getPublicTeams = function(selfTeamCode, cb){
 }
 
 
-exports.getTeamReports = function(scoutTeamCode, teamNumber, reportContext, query, cb) {//careful, this reveals scoutTeamCode on its own
+exports.getTeamReports = function(scoutTeam, teamNumber, reportContext, query, cb) {//careful, this reveals scoutTeam on its own
     var allReports = {
         yourTeam: [],
         otherTeams: []
     };
     if (reportContext == "match" || reportContext == "pit") {
-        getPublicTeams(scoutTeamCode, function(teamCodes){
+        getPublicTeams(scoutTeam, function(teamCodes){
             Report.find({
                 team: teamNumber,
                 context: reportContext,
                 //isPrivate: false,
                 event: query,
-                scoutTeamCode: {$in: teamCodes}
-            }, "data scout team match event scoutTeamCode", function(err, otherTeamReports) {
+                scoutTeam: {$in: teamCodes}
+            }, "data scout team match event scoutTeam", function(err, otherTeamReports) {
                 if (!err) {
                     //addImagesToReports(otherTeamReports, function(newOtherTeamReports) {
                         allReports.otherTeams = otherTeamReports;
@@ -407,7 +407,7 @@ exports.getTeamReports = function(scoutTeamCode, teamNumber, reportContext, quer
                             team: teamNumber,
                             context: reportContext,
                             event: query,
-                            scoutTeamCode: scoutTeamCode
+                            scoutTeam: scoutTeam
                         }, " _id data scout team match event").populate("scout", "firstname lastname").exec(function(err, yourTeamReports) {
                             if (!err) {
                                 //addImagesToReports(yourTeamReports, function(newYourTeamReports) {
