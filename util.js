@@ -177,7 +177,7 @@ String.prototype.replaceAll = function(t, r) {
 };
 
 exports.request = function(path, cb) { //I will make this function better using express later
-    http.request({
+    require("https").request({
         host: "www.thebluealliance.com",
         path: "/api/v2" + path,
         headers: {
