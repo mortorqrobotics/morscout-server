@@ -339,16 +339,16 @@ module.exports = function(imports) {
                             if (typeof(report.data[i].value) == "string") report.data[i].value = util.sec(report.data[i].value);
                         }
                         util.submitReport(report, function(didSubmit) {
-                            res.end(util.respond(didSubmit));
+                            res.sendStatus(didSubmit?200:400);//proper HTTP eroor code (will return 400 if not submitted)
                         });
                         //     }
                         // });
                     } else {
-                        res.end("fail");
+                        res.sendStatus(400);
                     }
                 });
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
 
