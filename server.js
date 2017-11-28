@@ -57,7 +57,7 @@ module.exports = function(imports) {
         if (req.user._id == req.body.userID) {
             res.end("success");
         } else {
-            res.end("fail");
+            res.sendStatus(400);
         }
     });
 
@@ -76,7 +76,7 @@ module.exports = function(imports) {
                     else res.end("fail")
                 });
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -92,7 +92,7 @@ module.exports = function(imports) {
                         team: team
                     }));
                 } else {
-                    res.end("fail");
+                    res.sendStatus(400);
                 }
             });
         });
@@ -123,11 +123,11 @@ module.exports = function(imports) {
                             res.end("not registered for this regional");
                         }
                     } else {
-                        res.end("fail");
+                        res.sendStatus(400);
                     }
                 });
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -140,7 +140,7 @@ module.exports = function(imports) {
                     res.json(eventInfo);
                 });
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -178,11 +178,11 @@ module.exports = function(imports) {
                             });
                         })();
                     } else {
-                        res.end("fail");
+                        res.sendStatus(400);
                     }
                 });
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -213,17 +213,17 @@ module.exports = function(imports) {
                                         res.end(JSON.stringify(progress));
                                     }
                                 } else if (isValid) {
-                                    res.end("fail");
+                                    res.sendStatus(400);
                                     isValid = false;
                                 }
                             });
                         })();
                     } else {
-                        res.end("fail");
+                        res.sendStatus(400);
                     }
                 });
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -280,10 +280,10 @@ module.exports = function(imports) {
                     })();
                 }
                 else {
-                    res.end("fail");
+                    res.sendStatus(400);
                 }
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -292,11 +292,13 @@ module.exports = function(imports) {
         Report.remove({
             _id: req.body.id
         }, function(err) {
-            res.end(util.respond(!err));
+            res.end(err?403:200);
         });
     });
-
+    app.use(require('body-parser').json());
     app.post("/submitReport", util.requireLogin, function(req, res) { //Check all middleware
+        console.log(req.body);
+
         var report = JSON.parse(JSON.stringify(req.body)); //req.body contains data(array), team, context, match(if needed), isPrivate, and images([Object]): NOT scouter info
         if (typeof(report.data) == "string") {
             report.data = JSON.parse(report.data);
@@ -327,7 +329,7 @@ module.exports = function(imports) {
                         //     scoutTeam: req.user.team
                         // }, function(err, reports) {
                         //     if (err) {
-                        //         res.end("fail");
+                        //         res.sendStatus(400);
                         //     } else {
                         //         if (reports.length == 0) {
                         //             report.isPrivate = false;
@@ -359,7 +361,7 @@ module.exports = function(imports) {
             var currentRegional = team.currentRegional;
             util.request("/match/" + currentRegional + "_qm" + req.body.match, function(matchInfo) {
                 if (matchInfo) res.end(JSON.stringify(matchInfo));
-                else res.end("fail");
+                else res.sendStatus(400);
             });
         });
     });
@@ -371,7 +373,7 @@ module.exports = function(imports) {
         }, {
             scoutCaptain: isSC
         }, function(err) {
-            res.end(util.respond(!err));
+            res.sendStatus(err?500:200);
         });
     });
 
@@ -383,7 +385,7 @@ module.exports = function(imports) {
                 if (user.scoutCaptain) res.end("true");
                 else res.end("false");
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
 
         });
@@ -399,11 +401,11 @@ module.exports = function(imports) {
                     if (!err) {
                         res.end(JSON.stringify(reports));
                     } else {
-                        res.end("fail");
+                        res.sendStatus(400);
                     }
                 });
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -441,7 +443,7 @@ module.exports = function(imports) {
                     }));
                 });
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -475,7 +477,7 @@ module.exports = function(imports) {
                          res.end(JSON.stringify(allReports));
                      }
                 } else {
-                    res.end("fail");
+                    res.sendStatus(400);
                 }
             });
         });
@@ -518,7 +520,7 @@ module.exports = function(imports) {
     	    	}));
     		}
     		else {
-    			res.end("fail");
+    			res.sendStatus(400);
     		}
     });*/
 
@@ -535,10 +537,10 @@ module.exports = function(imports) {
         // }, function(err, count) {
         //     if (!err) {
         util.addDataPoints(allDataPoints, req.user.team, req.body.context, function(formSet) { //also removes previous data points
-            res.end(util.respond(formSet));
+            res.sendStatus(formSet?500:200);
         });
         // } else {
-        //     res.end("fail");
+        //     res.sendStatus(400);
         // }
         // });
     });
@@ -550,11 +552,11 @@ module.exports = function(imports) {
                     if (Array.isArray(teams)) { //arr
                         res.end(JSON.stringify(teams));
                     } else {
-                        res.end("fail");
+                        res.sendStatus(400);
                     }
                 });
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -566,11 +568,11 @@ module.exports = function(imports) {
                     if (typeof(rankings) == "object") { //arr
                         res.end(JSON.stringify(rankings));
                     } else {
-                        res.end("fail");
+                        res.sendStatus(400);
                     }
                 });
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -579,10 +581,10 @@ module.exports = function(imports) {
         util.getTeamInfoForUser(req.user.team, function(team) {
             if (team) {
                 util.sendEmail("support@morscout.com", "Feedback from team " + team.number, req.body.content, function(didSend) {
-                    res.end(util.respond(didSend));
+                    res.sendStatus(didSend?200:500);
                 });
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -622,11 +624,11 @@ module.exports = function(imports) {
                             });
                         })();
                     } else {
-                        res.end("fail");
+                        res.sendStatus(400);
                     }
                 });
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -659,7 +661,7 @@ module.exports = function(imports) {
                     });
                 })();
                 if (events.length == 0) {
-                    res.end("fail");
+                    res.sendStatus(400);
                 }
             });
         });
@@ -671,11 +673,11 @@ module.exports = function(imports) {
                 util.request("/event/" + team.currentRegional + "/stats", function(stats, err) {
                     var oprs = stats.oprs;
                     if (!err) res.end(JSON.stringify(util.sortObject(oprs)));
-                    else res.end("fail");
+                    else res.sendStatus(400);
                 });
             }
             else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -685,7 +687,7 @@ module.exports = function(imports) {
             scoutTeam: req.user.team,
             context: req.body.context
         }, function(err) {
-            res.end(util.respond(!err));
+            res.sendStatus(err?500:200);
         });
     });
 
@@ -696,7 +698,7 @@ module.exports = function(imports) {
         }, {
             isPrivate: isPrivate
         }, function(err) {
-            res.end(util.respond(!err));
+            res.end(err?500:200);
         });
     });
 
@@ -705,7 +707,7 @@ module.exports = function(imports) {
             if (team) {
                 res.end(team.isPrivate.toString());
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -742,7 +744,7 @@ module.exports = function(imports) {
                         }
                     }
                     if (rankings.length == 0) {
-                        res.end("fail");
+                        res.sendStatus(400);
                     }
                 });
             }
@@ -766,11 +768,11 @@ module.exports = function(imports) {
                     }
                     util.addDataPoints(allDataPoints, req.user.team, req.body.context, function(formSet) {
                         if (formSet) res.end(JSON.stringify(JSON.parse(forms.toString())[req.body.context]));
-                        else res.end("fail");
+                        else res.sendStatus(400);
                     });
                 });
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -779,7 +781,7 @@ module.exports = function(imports) {
         Assignment.remove({
             _id: req.body.id
         }, function(err) {
-            res.end(util.respond(!err));
+            res.sendStatus(err?500:200);
         });
     });
 
@@ -814,14 +816,14 @@ module.exports = function(imports) {
                             eventCode: team.currentRegional,
                             assignedBy: req.user._id
                         }, function(err) {
-                            res.end(util.respond(!err));
+                            res.sendStatus(err?500:200);
                         });
                     } else {
-                        res.end("fail");
+                        res.sendStatus(400);
                     }
                 });
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -901,11 +903,11 @@ module.exports = function(imports) {
                             });
                         });
                     } else {
-                        res.end("fail");
+                        res.sendStatus(400);
                     }
                 });
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -921,7 +923,7 @@ module.exports = function(imports) {
             if (!err) {
                 res.end(JSON.stringify(team));
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -940,10 +942,10 @@ module.exports = function(imports) {
                         matchNumber: parseInt(req.body.match),
                         strategy: util.sec(req.body.strategy)
                     }, function(err) {
-                        res.end(util.respond(!err));
+                        res.sendStatus(err?500:200);
                     });
                 } else {
-                    res.end("fail");
+                    res.sendStatus(400);
                 }
             });
         });
@@ -957,7 +959,7 @@ module.exports = function(imports) {
                 matchNumber: parseInt(req.body.match)
             }, function(err, strategy) {
                 if (!err) res.end(JSON.stringify(strategy));
-                else res.end("fail");
+                else res.sendStatus(400);
             });
         });
     });
@@ -969,7 +971,7 @@ module.exports = function(imports) {
                 team: req.user.team
             }, function(err, strategies) {
                 if (!err) res.end(JSON.stringify(strategies));
-                else res.end("fail");
+                else res.sendStatus(400);
             });
         });
     });
@@ -990,15 +992,15 @@ module.exports = function(imports) {
                             if (!err) {
                                 res.end("success");
                             } else {
-                                res.end("fail");
+                                res.sendStatus(400);
                             }
                         })
                     } else {
-                        res.end("fail");
+                        res.sendStatus(400);
                     }
                 });
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -1025,7 +1027,7 @@ module.exports = function(imports) {
                     }
                 });
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -1054,11 +1056,11 @@ module.exports = function(imports) {
                             });
                         })();
                     } else {
-                        res.end("fail");
+                        res.sendStatus(400);
                     }
                 });
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         });
     });
@@ -1070,16 +1072,18 @@ module.exports = function(imports) {
                     if (stats != {}) {
                         res.end(JSON.stringify(stats));
                     } else {
-                        res.end("fail");
+                        res.sendStatus(400);
                     }
                 });
             } else {
-                res.end("fail");
+                res.sendStatus(400);
             }
         })
     });
 
-    // TODO; add 404
+    app.use(function(req,res){
+        res.sendStatus(404);//Send 404 if not found
+    });
 
     return app;
 
