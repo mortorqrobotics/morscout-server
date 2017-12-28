@@ -472,19 +472,21 @@ exports.getTeamInfoForUser = function(team, cb) {
             var date = new Date();
             var year = date.getFullYear();
             exports.request("/team/frc" + team.number + "/" + year + "/events", function(events) {
-                var defKey = events[0].key;
-                if (isDef(defKey)){
-                    Team.update({
-                        _id: team
-                    },{
-                        currentRegional: defKey
-                    }, function(err, newTeam){
-                        if (!err) cb(newTeam);
-                        else cb(team);
-                    });
-                }
-                else {
-                    cb(team);
+                if (events) {
+                    var defKey = events[0].key;
+                    if (isDef(defKey)){
+                        Team.update({
+                            _id: team
+                        },{
+                            currentRegional: defKey
+                        }, function(err, newTeam){
+                            if (!err) cb(newTeam);
+                            else cb(team);
+                        });
+                    }
+                    else {
+                        cb(team);
+                    }
                 }
             });
         }
