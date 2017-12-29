@@ -1081,6 +1081,10 @@ module.exports = function(imports) {
         })
     });
 
+    app.use('/testConnection', function(req, res){
+        res.sendStatus(200);
+    });
+
     app.use(function(req,res){
         res.sendStatus(404);//Send 404 if not found
     });
