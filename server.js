@@ -537,7 +537,7 @@ module.exports = function(imports) {
         // }, function(err, count) {
         //     if (!err) {
         util.addDataPoints(allDataPoints, req.user.team, req.body.context, function(formSet) { //also removes previous data points
-            res.sendStatus(formSet?500:200);
+            res.sendStatus(formSet? 200 : 500);
         });
         // } else {
         //     res.sendStatus(400);
