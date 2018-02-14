@@ -292,7 +292,7 @@ module.exports = function(imports) {
         Report.remove({
             _id: req.body.id
         }, function(err) {
-            res.end(err?403:200);
+            res.end(err ? 403 : 200);
         });
     });
     app.use(require('body-parser').json());
@@ -341,7 +341,7 @@ module.exports = function(imports) {
                             if (typeof(report.data[i].value) == "string") report.data[i].value = util.sec(report.data[i].value);
                         }
                         util.submitReport(report, function(didSubmit) {
-                            res.sendStatus(didSubmit?200:400);//proper HTTP eroor code (will return 400 if not submitted)
+                            res.sendStatus(didSubmit ? 200 : 400);//proper HTTP eroor code (will return 400 if not submitted)
                         });
                         //     }
                         // });
@@ -373,7 +373,7 @@ module.exports = function(imports) {
         }, {
             scoutCaptain: isSC
         }, function(err) {
-            res.sendStatus(err?500:200);
+            res.sendStatus(err ? 500 : 200);
         });
     });
 
@@ -537,7 +537,7 @@ module.exports = function(imports) {
         // }, function(err, count) {
         //     if (!err) {
         util.addDataPoints(allDataPoints, req.user.team, req.body.context, function(formSet) { //also removes previous data points
-            res.sendStatus(formSet?500:200);
+            res.sendStatus(formSet ? 200 : 500);
         });
         // } else {
         //     res.sendStatus(400);
@@ -581,7 +581,7 @@ module.exports = function(imports) {
         util.getTeamInfoForUser(req.user.team, function(team) {
             if (team) {
                 util.sendEmail("support@morscout.com", "Feedback from team " + team.number, req.body.content, function(didSend) {
-                    res.sendStatus(didSend?200:500);
+                    res.sendStatus(didSend ? 200 : 500);
                 });
             } else {
                 res.sendStatus(400);
@@ -687,7 +687,7 @@ module.exports = function(imports) {
             scoutTeam: req.user.team,
             context: req.body.context
         }, function(err) {
-            res.sendStatus(err?500:200);
+            res.sendStatus(err ? 500 : 200);
         });
     });
 
@@ -698,7 +698,7 @@ module.exports = function(imports) {
         }, {
             isPrivate: isPrivate
         }, function(err) {
-            res.end(err?500:200);
+            res.end(err ? 500 : 200);
         });
     });
 
@@ -781,7 +781,7 @@ module.exports = function(imports) {
         Assignment.remove({
             _id: req.body.id
         }, function(err) {
-            res.sendStatus(err?500:200);
+            res.sendStatus(err ? 500 : 200);
         });
     });
 
@@ -816,7 +816,7 @@ module.exports = function(imports) {
                             eventCode: team.currentRegional,
                             assignedBy: req.user._id
                         }, function(err) {
-                            res.sendStatus(err?500:200);
+                            res.sendStatus(err ? 500 : 200);
                         });
                     } else {
                         res.sendStatus(400);
@@ -942,7 +942,7 @@ module.exports = function(imports) {
                         matchNumber: parseInt(req.body.match),
                         strategy: util.sec(req.body.strategy)
                     }, function(err) {
-                        res.sendStatus(err?500:200);
+                        res.sendStatus(err ? 500 : 200);
                     });
                 } else {
                     res.sendStatus(400);
