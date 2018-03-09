@@ -71,7 +71,7 @@ module.exports = function(imports) {
     app.post("/getRegionalsForTeam", util.requireLogin, function(req, res) {
         util.getTeamInfoForUser(req.user.team, function(team) {
             if (team) {
-                util.request("/team/frc" + team.number + "/" + req.body.year + "/events", function(events) {
+                util.request("/team/frc" + team.number + "/events/" + req.body.year, function(events) {
                     if (events) res.json(events);
                     else res.end("fail")
                 });
@@ -102,7 +102,7 @@ module.exports = function(imports) {
         util.getTeamInfoForUser(req.user.team, function(team) { //FIX
             if (team && typeof(req.body.eventCode) == "string") {
                 var year = req.body.eventCode.substring(0, 4);
-                util.request("/team/frc" + team.number + "/" + year + "/events", function(events) {
+                util.request("/team/frc" + team.number + "/events/" + year, function(events) {
                     if (events && typeof(events) == "object" && events.length > 0) { //array
                         for (var i = 0; i < events.length; i++) {
                             var registeredForRegional = false;
@@ -234,7 +234,7 @@ module.exports = function(imports) {
                 var year = team.currentRegional.substring(0, 4);
                 var teamNumber = req.body.teamNumber;
                 var links = [];
-                util.request("/team/frc" + teamNumber + "/" + year + "/media", function(sources) {
+                util.request("/team/frc" + teamNumber + "/media/" + year, function(sources) {
                     for (var i = 0; i < sources.length; i++) {
                         if (sources[i].type == "imgur") {
                             links.push("http://i.imgur.com/" + sources[i].foreign_key + ".png");
@@ -635,14 +635,14 @@ module.exports = function(imports) {
 
     app.post("/getTeamPrevEventStats", util.requireLogin, function(req, res) {
         util.getTeamInfoForUser(req.user.team, function(team) {
-            util.request("/team/frc" + req.body.teamNumber + "/" + team.currentRegional.substring(0, 4) + "/events", function(allEvents) {
+            util.request("/team/frc" + req.body.teamNumber + "/events/" + team.currentRegional.substring(0, 4), function(allEvents) {
                 var eventStats = {};
                 var events = [];
                 if (allEvents) events = allEvents;
                 for (var i = 0; i < events.length; i++)(function() {
                     var eventKey = events[i].key;
                     var eventObj = {};
-                    util.request("/event/" + eventKey + "/stats", function(stats, err) {
+                    util.request("/event/" + eventKey + "/oprs", function(stats, err) {
                         var statDone = 0;
                         if (stats === null) {
                             eventStats[eventKey] = {};
@@ -670,7 +670,7 @@ module.exports = function(imports) {
     app.post("/getOPRSort", util.requireLogin, function(req, res){
         util.getTeamInfoForUser(req.user.team, function(team) {
             if (team){
-                util.request("/event/" + team.currentRegional + "/stats", function(stats, err) {
+                util.request("/event/" + team.currentRegional + "/oprs", function(stats, err) {
                     var oprs = stats.oprs;
                     if (!err) res.end(JSON.stringify(util.sortObject(oprs)));
                     else res.sendStatus(400);
@@ -713,7 +713,7 @@ module.exports = function(imports) {
     });
 
     app.post("/getTeamPrevEventAwards", util.requireLogin, function(req, res) {
-        util.request("/team/frc" + req.body.teamNumber + "/" + req.body.year + "/events", function(events) {
+        util.request("/team/frc" + req.body.teamNumber + "/events/" + req.body.year, function(events) {
             var eventAwards = {};
             var eventDone = 0;
             for (var i = 0; i < events.length; i++) {
@@ -729,7 +729,7 @@ module.exports = function(imports) {
     });
 
     app.post("/getTeamPrevEventRank", util.requireLogin, function(req, res) {
-        util.request("/team/frc" + req.body.teamNumber + "/" + req.body.year + "/events", function(events) {
+        util.request("/team/frc" + req.body.teamNumber + "/events/" + req.body.year, function(events) {
             var eventRanks = {};
             var eventDone = 0;
             for (var i = 0; i < events.length; i++) {
@@ -1035,7 +1035,7 @@ module.exports = function(imports) {
     app.post("/getPastRegionalResults", function(req, res) { //try to fix speed
         util.getTeamInfoForUser(req.user.team, function(team) {
             if (team) {
-                util.request("/team/frc" + req.body.teamNumber + "/" + team.currentRegional.substring(0, 4) + "/events", function(events, err) {
+                util.request("/team/frc" + req.body.teamNumber + "/events/" + team.currentRegional.substring(0, 4), function(events, err) {
                     if (!err) {
                         var done = 0;
                         var allAwards = {};

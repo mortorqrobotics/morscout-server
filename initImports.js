@@ -10,9 +10,7 @@ module.exports = function(imports) {
 		imports.config = require(configPath);
 	} else {
 		imports.config = {
-			"mailgunUser": "user@morteam.com",
-			"malgunPass": "password",
-			"dbName": "morteam"
+            tbaApiKey: ""
 		};
 		fs.writeFileSync(configPath, JSON.stringify(imports.config, null, "\t"));
 		console.log("Generated default config.json");

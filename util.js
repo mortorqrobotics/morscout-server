@@ -13,6 +13,7 @@ var Image = imports.models.Image;
 var User = imports.models.User;
 var Team = imports.models.Team;
 var Subdivision = imports.models.Subdivision;
+var config = imports.config;
 
 /* usage:
 
@@ -179,9 +180,9 @@ String.prototype.replaceAll = function(t, r) {
 exports.request = function(path, cb) { //I will make this function better using express later
     require("https").request({
         host: "www.thebluealliance.com",
-        path: "/api/v2" + path,
+        path: "/api/v3" + path,
         headers: {
-            "X-TBA-App-Id": "frc1515:MorScout:2.0"
+            "X-TBA-Auth-Key": config.tbaApiKey
         }
     }, function(res) {
         var data = "";
@@ -471,8 +472,8 @@ exports.getTeamInfoForUser = function(team, cb) {
         if (isDef(team) && (!isDef(team.currentRegional) || team.currentRegional.trim() == "")){
             var date = new Date();
             var year = date.getFullYear();
-            exports.request("/team/frc" + team.number + "/" + year + "/events", function(events) {
-                if (events) {
+            exports.request("/team/frc" + team.number + "/events/" + year, function(events) {
+                if (events.length > 0) {
                     var defKey = events[0].key;
                     if (isDef(defKey)){
                         Team.update({
